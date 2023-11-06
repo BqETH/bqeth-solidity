@@ -1,0 +1,244 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+uint64 constant Y3K = 32503680000000;
+
+struct PuzzleChains {
+    Chain[] chains;
+}
+
+struct Chain {
+    uint256 head; // Chain head pid
+    bytes N; // The modulus for all puzzles in the chain
+}
+
+struct Puzzle {
+    address creator; // The user who registered the puzzle
+    uint128 t; // The time parameter
+    uint128 reward; // The amount that should be dispensed
+    uint256 sdate; // The start date or next pid in chain
+    bytes32 h3; // H3 Hash value of the solution
+    bytes x; // The start value
+}
+
+struct ActivePolicy {
+    address creator; // The user who registered the puzzle
+    uint256 pid; // The puzzle id which issued the policy
+    bytes32 mkh; // Decrypted message hash of hashes
+    bytes32 mtroot; // The Merkle Tree Root for verification
+    string encryptedPayload;  // The encrypted secret
+    string encryptedDelivery; // The encrypted delivery
+    string condition; // The encrypted delivery
+    string ritualId;
+    bool whistleBlower;
+}
+
+library LibBqETH {
+    bytes32 constant BQETH_POSITION = keccak256("bqeth.data.storage");  // Diamond storage
+    bytes32 constant BQETH_METRICS = keccak256("bqeth.metrics.storage");// Diamond storage
+    string constant version = "BqETH Version 3.0";
+
+    struct BqETHStorage {
+        mapping(address => PuzzleChains) userChains;    // User -> Chains -> [(head,modulus)]
+        mapping(uint256 => Puzzle) userPuzzles;         // Pid -> Puzzle
+        mapping(uint256 => address) claimData;          // Pid -> Farmer
+        mapping(uint256 => uint256) claimBlockNumber;   // Pid -> BlockNumber
+        mapping(address => uint256) escrow_balances;    // User -> Escrow
+        mapping(address => ActivePolicy) activePolicies; // User -> ActivePolicy
+        mapping(address => uint256) activeChainHead;    // User -> Active chain head pid
+    }
+
+    function bqethStorage() public pure returns (BqETHStorage storage bds) {
+        bytes32 position = BQETH_POSITION;
+        assembly {
+            bds.slot := position
+        }
+    }
+
+    struct BqETHMetrics {
+        uint128 gweiPerDay;                // Market Reward per Day in Gwei
+        uint128 secondsPer32Exp;           // Best recorded speed for x^(2^32) in seconds
+    }
+
+    function bqethMetrics() public pure returns (BqETHMetrics storage bms) {
+        bytes32 position = BQETH_METRICS;
+        assembly {
+            bms.slot := position
+        }
+    }
+
+    function toHexString(uint i) public pure returns (string memory) {
+        if (i == 0) return "0";
+        uint j = i;
+        uint length;
+        while (j != 0) {
+            length++;
+            j = j >> 4;
+        }
+        uint mask = 15;
+        bytes memory bstr = new bytes(length);
+        uint k = length;
+        while (i != 0) {
+            uint curr = (i & mask);
+            bstr[--k] = curr > 9
+                ? bytes1(uint8(55 + curr))
+                : bytes1(uint8(48 + curr)); // 55 = 65 - 10
+            i = i >> 4;
+        }
+        return string(bstr);
+    }
+
+    // Some unique key for each puzzle
+    function _puzzleKey(
+        bytes memory _N,
+        bytes memory _x,
+        uint256 _t
+    ) public pure returns (uint256) {
+        return uint256(keccak256(abi.encodePacked(_N, _x, _t)));
+    }
+
+    function _findPuzzleChain(
+        uint256 _pid,
+        address _creator
+    ) internal view returns (Chain memory) {
+        BqETHStorage storage bs = bqethStorage();
+        Chain memory chain;
+        bool found = false;
+        // We must first find the chain for this puzzle
+        Chain[] memory mychains = bs.userChains[_creator].chains;
+        uint chainsLength = mychains.length;
+        for (uint i = 0; i < chainsLength; i++) {
+            Chain memory c = mychains[i];
+            uint256 pid_to_check = c.head;
+            while (pid_to_check > Y3K) {
+                // Clear puzzle chain
+                uint256 next_pid = bs.userPuzzles[pid_to_check].sdate;
+                if (pid_to_check == _pid) {
+                    chain = c;
+                    found = true;
+                    break; // We found our Puzzle
+                }
+                pid_to_check = next_pid;
+            }
+            if (found) {
+                // We found it, look no further
+                break;
+            }
+        }
+        return chain;
+    }
+
+    function _getActiveChain(
+        address _user
+    )
+        public
+        view
+        returns (
+            Puzzle[] memory chain // The Puzzle chain
+        )
+    {
+        // This is now always the first puzzle of a chain
+        BqETHStorage storage bs = bqethStorage();
+        uint256 ph = bs.activeChainHead[_user];
+        Puzzle memory puzzle = bs.userPuzzles[ph];
+
+        // Count the puzzles in the chain
+        uint256 idx = 1;
+        while (puzzle.sdate > Y3K) {
+            puzzle = bs.userPuzzles[puzzle.sdate];
+            idx++;
+        }
+
+        Puzzle[] memory puzzles = new Puzzle[](idx);
+        puzzle = bs.userPuzzles[ph];
+        uint256 i = 0;
+        while (puzzle.sdate > Y3K) {
+            puzzles[i] = puzzle;
+            puzzle = bs.userPuzzles[puzzle.sdate];
+            i++;
+        }
+        puzzles[i] = puzzle; // Save the final puzzle
+
+        return (
+            puzzles // The puzzle chain
+        );
+    }
+
+    function _getActivePuzzle(
+        address _user
+    )
+        public
+        view
+        returns (
+            uint256 pid, // The puzzle key
+            address creator, // The puzzle creator
+            bytes memory N, // The modulus
+            bytes memory x, // The start value
+            uint256 t, // The time parameter
+            bytes32 h3, // H3 Hash value of the solution
+            uint256 reward, // The amount that should be dispensed
+            uint256 sdate
+        )
+    {
+        // This is now always the first puzzle of a chain as long as the chain is active
+        BqETHStorage storage bs = bqethStorage();
+        uint256 ph = bs.activeChainHead[_user];
+        require(ph != 0, "Puzzle not found.");
+        return _getPuzzle(ph);
+    }
+
+    /// @notice Performs a formal request for all of a puzzle's data
+    /// @param _pid uint256 The puzzle hash
+    function _getPuzzle(
+        uint256 _pid
+    )
+        public
+        view
+        returns (
+            uint256 pid, // The puzzle key
+            address creator, // The puzzle creator
+            bytes memory N, // The modulus
+            bytes memory x, // The start value
+            uint256 t, // The time parameter
+            bytes32 h3, // H3 Hash value of the solution
+            uint256 reward, // The amount that should be dispensed
+            uint256 sdate
+        )
+    {
+        BqETHStorage storage bs = bqethStorage();
+        Puzzle memory puzzle = bs.userPuzzles[_pid];
+        require(puzzle.creator != address(0), "Puzzle not found.");
+        Chain memory chain = _findPuzzleChain(_pid, puzzle.creator);
+
+        return (
+            _pid,
+            puzzle.creator, // The puzzle creator
+            chain.N, // The modulus
+            puzzle.x, // The start value
+            puzzle.t, // The time parameter
+            puzzle.h3, // H3 Hash value of the solution
+            puzzle.reward, // The amount that should be dispensed
+            puzzle.sdate // The start date or next puzzle pid
+        );
+    }
+
+    function setRewardPerDay(uint128 gweiPerDay) public {
+        BqETHMetrics storage bms = bqethMetrics();
+        bms.gweiPerDay = gweiPerDay;
+    }
+
+    function getRewardPerDay() public view returns (uint128 gweiPerDay) {
+        BqETHMetrics storage bms = bqethMetrics();
+        return bms.gweiPerDay;
+    }
+
+    function setSecondsPer32Exp(uint128 secondsPer32Exp) public {
+        BqETHMetrics storage bms = bqethMetrics();
+        bms.secondsPer32Exp = secondsPer32Exp;
+    }
+
+    function getSecondsPer32Exp() public view returns (uint128 secondsPer32Exp) {
+        BqETHMetrics storage bms = bqethMetrics();
+        return bms.secondsPer32Exp;
+    }
+}

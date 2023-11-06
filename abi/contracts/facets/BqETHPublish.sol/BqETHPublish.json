@@ -1,0 +1,345 @@
+[
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "notifications",
+        "type": "string"
+      }
+    ],
+    "name": "NewNotificationSet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "ritualId",
+        "type": "string"
+      }
+    ],
+    "name": "NewPolicyRegistered",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "pid",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "ready",
+        "type": "bool"
+      }
+    ],
+    "name": "NewPuzzleRegistered",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "_N",
+        "type": "bytes"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint128",
+            "name": "t",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint128",
+            "name": "reward",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint256",
+            "name": "pid",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "h3",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes",
+            "name": "x",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct ChainData[]",
+        "name": "_c",
+        "type": "tuple[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_sdate",
+        "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "passThrough",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "services",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "servicesAmt",
+            "type": "uint64"
+          },
+          {
+            "internalType": "string",
+            "name": "notifications",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct BqETHData",
+        "name": "_bqethData",
+        "type": "tuple"
+      }
+    ],
+    "name": "registerFlippedPuzzle",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "_N",
+        "type": "bytes"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint128",
+            "name": "t",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint128",
+            "name": "reward",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint256",
+            "name": "pid",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "h3",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes",
+            "name": "x",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct ChainData[]",
+        "name": "_c",
+        "type": "tuple[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_sdate",
+        "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "ritualId",
+            "type": "string"
+          },
+          {
+            "internalType": "bool",
+            "name": "whistleBlower",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct PolicyData",
+        "name": "_policy",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "encryptedPayload",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "encryptedDelivery",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "condition",
+            "type": "string"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "mkh",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "mtroot",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct PayloadData",
+        "name": "_payload",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "passThrough",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "services",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "servicesAmt",
+            "type": "uint64"
+          },
+          {
+            "internalType": "string",
+            "name": "notifications",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct BqETHData",
+        "name": "_bqethData",
+        "type": "tuple"
+      }
+    ],
+    "name": "registerPuzzleChain",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "encryptedPayload",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "encryptedDelivery",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "condition",
+            "type": "string"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "mkh",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "mtroot",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct PayloadData",
+        "name": "_payload",
+        "type": "tuple"
+      }
+    ],
+    "name": "replaceMessageKit",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_notification",
+        "type": "string"
+      }
+    ],
+    "name": "replaceNotification",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "wb",
+        "type": "bool"
+      }
+    ],
+    "name": "setWhistleBlower",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

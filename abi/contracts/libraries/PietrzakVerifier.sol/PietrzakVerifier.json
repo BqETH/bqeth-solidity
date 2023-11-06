@@ -1,0 +1,82 @@
+[
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes",
+            "name": "val",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "neg",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "bitlen",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct BigNumber",
+        "name": "_x",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes",
+            "name": "val",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "neg",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "bitlen",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct BigNumber",
+        "name": "_y",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes",
+            "name": "val",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "neg",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "bitlen",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct BigNumber",
+        "name": "_u",
+        "type": "tuple"
+      }
+    ],
+    "name": "r_value",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  }
+]
