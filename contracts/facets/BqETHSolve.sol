@@ -5,7 +5,6 @@ import "hardhat/console.sol";
 import "../libraries/LibBqETH.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../libraries/PietrzakVerifier.sol";
-import "../libraries/BigNumbers.sol";
 
 contract BqETHSolve is ReentrancyGuard {
     bytes32 immutable salt = "BqETH";

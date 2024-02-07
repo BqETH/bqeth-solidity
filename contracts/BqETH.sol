@@ -5,8 +5,7 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "hardhat/console.sol";
 
-import "./libraries/BigNumbers.sol";
-import "./libraries/PietrzakVerifier.sol";
+
 import "./libraries/LibBqETH.sol";
 
 import { LibDiamond } from "hardhat-deploy/solc_0.8/diamond/libraries/LibDiamond.sol";

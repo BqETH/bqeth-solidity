@@ -5,9 +5,6 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "hardhat/console.sol";
 import { LibDiamond } from "hardhat-deploy/solc_0.8/diamond/libraries/LibDiamond.sol";
 
-// import "typescript-solidity-merkle-tree/contracts/MerkleTreeVerifier.sol";
-import "../libraries/BigNumbers.sol";
-import "../libraries/PietrzakVerifier.sol";
 import "../libraries/LibBqETH.sol";
 
 // Structures used for passing data through functions
