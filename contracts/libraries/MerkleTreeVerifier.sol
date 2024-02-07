@@ -2,7 +2,9 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 // From https://github.com/liamzebedee/typescript-solidity-merkle-tree
-// I had to make it an abstract contract and change the pragma
+// I had to make it an abstract contract and change the pragma because the original library
+// could be installed but pins the solidity version to 0.5.0 
+// and hasn't been modified in 5 years.
 
 // // Definition here allows both the lib and inheriting contracts to use BigNumber directly.
 // struct MerkleTree {
@@ -10,7 +12,7 @@ pragma solidity >=0.8.0 <0.9.0;
 // }
 
 /**
- * @notice BigNumbers library for Solidity.
+ * @notice Merkle Tree Verifier library for Solidity.
  */
 library MerkleTreeVerifier {
 
