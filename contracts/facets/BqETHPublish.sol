@@ -3,7 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "hardhat/console.sol";
-import { LibDiamond } from "../../node_modules/hardhat-deploy/solc_0.8/diamond/libraries/LibDiamond.sol";
+import { LibDiamond } from "hardhat-deploy/solc_0.8/diamond/libraries/LibDiamond.sol";
 
 // import "typescript-solidity-merkle-tree/contracts/MerkleTreeVerifier.sol";
 import "../libraries/BigNumbers.sol";

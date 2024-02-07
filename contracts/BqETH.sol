@@ -8,7 +8,8 @@ import "hardhat/console.sol";
 import "./libraries/BigNumbers.sol";
 import "./libraries/PietrzakVerifier.sol";
 import "./libraries/LibBqETH.sol";
-import { LibDiamond } from "../node_modules/hardhat-deploy/solc_0.8/diamond/libraries/LibDiamond.sol";
+
+import { LibDiamond } from "hardhat-deploy/solc_0.8/diamond/libraries/LibDiamond.sol";
 
 /// @title BqETH Contract
 contract BqETH is ReentrancyGuard {
