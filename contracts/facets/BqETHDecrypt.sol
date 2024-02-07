@@ -7,8 +7,6 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../libraries/MerkleTreeVerifier.sol";
 import "../libraries/BigNumbers.sol";
 
-// import "../BqETH.sol";
-
 contract BqETHDecrypt is ReentrancyGuard {
     bytes32 immutable salt = "BqETH";
 
@@ -162,10 +160,7 @@ contract BqETHDecrypt is ReentrancyGuard {
                 "Decrypted data must match commitment."
             );
 
-            // We should also verify the new CID
-            // if (verifyIPFS.verifyHash(newcid, newcid)) {
-            // }
-
+            // We should also verify the new CID using verifyIPFS library
             emit decryptionRewardClaimed(_pid, puzzle.creator, newcid);
 
             // Pay the decryptor his reward
