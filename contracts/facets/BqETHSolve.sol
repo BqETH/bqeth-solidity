@@ -134,6 +134,7 @@ contract BqETHSolve is ReentrancyGuard {
                 // console.log("New Escrow balance:    ", escrow_balances[puzzle.creator]);
                 bs.userPuzzles[_pid].x = ""; // Set puzzle to inactive
                 // console.log("Zeroed Puzzle:", LibBqETH.toHexString(_pid));
+                bs.userPuzzles[_pid].reward = 0; // Set reward to zero
 
                 emit RewardClaimed(_pid, _y, puzzle.sdate, puzzle.reward);
 
