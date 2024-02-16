@@ -65,6 +65,8 @@
     "node": "^19.3.0",
     "nodejs": "^0.0.0",
     "nvm": "^0.0.4",
+    "solium": "^1.2.5",
+    "typescript-solidity-merkle-tree": "https://github.com/liamzebedee/typescript-solidity-merkle-tree",
     "web3": "^1.8.0"
   }
 }
