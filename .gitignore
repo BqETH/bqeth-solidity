@@ -26,5 +26,6 @@
 /contracts/diagrams
 /lib/solidity-stringutils/
 /lib/forge-std/
+/types
 goerli
 scratch

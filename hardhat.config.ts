@@ -4,6 +4,9 @@ import "hardhat-deploy";
 import 'hardhat-gas-reporter';
 import '@nomiclabs/hardhat-etherscan';
 import './tasks/tasks.ts';
+import '@typechain/hardhat'
+import '@nomicfoundation/hardhat-ethers'
+import '@nomicfoundation/hardhat-chai-matchers'
 
 dotenv.config();
 
@@ -76,6 +79,13 @@ const config: HardhatUserConfig = {
           ? [process.env.TEST_ETH_ACCOUNT_PRIVATE_KEY]
           : []
     },
+  },
+  typechain: {
+    outDir: 'types',
+    target: 'ethers-v6',
+    alwaysGenerateOverloads: false, // should overloads with full signatures like deposit(uint256) be generated always, even if there are no overloads?
+    externalArtifacts: ['externalArtifacts/*.json'], // optional array of glob patterns with external artifacts to process (for example external libs from node_modules)
+    dontOverrideCompile: false // defaults to false
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
