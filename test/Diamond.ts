@@ -3,31 +3,12 @@ import {HardhatRuntimeEnvironment} from 'hardhat/types';
 import hre from "hardhat";
 import 'hardhat-deploy';
 import 'hardhat-deploy-ethers';
+import { expect } from 'chai';
 
-// const setupTest = hre.deployments.createFixture(
-//   async ({deployments, getNamedAccounts, ethers}, options) => {
-//     await deployments.fixture(); // ensure you start from a fresh deployments
-//     const {tokenOwner} = await getNamedAccounts();
-//     const TokenContract = await ethers.getContract('Token', tokenOwner);
-//     await TokenContract.mint(10).then((tx) => tx.wait()); //this mint is executed once and then `createFixture` will ensure it is snapshotted
-//     return {
-//       tokenOwner: {
-//         address: tokenOwner,
-//         TokenContract,
-//       },
-//     };
-//   }
-// );
+const setupTest = hre.deployments.createFixture(
+  async ({deployments, getNamedAccounts, ethers}, options) => {
+    await deployments.fixture(); // ensure you start from a fresh deployments
 
-describe("BqETH contract", function () {
-
-  beforeEach(async function() {
-    console.log("Running deployment once."); // yarn hardhat deploy --reset
-  });
-  
-  it("Deployment should create a diamond", async function () {
-    const [owner] = await hre.ethers.getSigners();
-    const ownerAddress = await owner.getAddress();
     const {deployer, diamondAdmin} = await hre.getNamedAccounts();
 
     // The tests assume that things get mined right away
@@ -52,15 +33,6 @@ describe("BqETH contract", function () {
     console.log(`PietrzakVerifier deployed to: ${pietrzakVerifierAddress}`);
     await libBqETH.waitForDeployment();
     console.log(`LibBqETH deployed to: ${libBqETHAddress}`);
-
-    // const bqETHPublish = await hre.ethers.deployContract("BqETHPublish", {
-    //   libraries: {
-    //     LibBqETH: libBqETHAddress,
-    //   }
-    // });
-    // const bqETHPublishAddress = await bqETHPublish.getAddress();
-    // await bqETHPublish.waitForDeployment();
-    // console.log(`bqETHPublish deployed to: ${bqETHPublishAddress}`);
 
     const diamondOptions: DiamondOptions = {
       from: deployer,
@@ -87,21 +59,49 @@ describe("BqETH contract", function () {
     };
   
     const dr = await hre.deployments.diamond.deploy('BqETHTestDiamond', diamondOptions);
+
+    // Now we're going to call the BqETH facet via the diamond Proxy to set the secPer32Exp value
+    const {owner} = await getNamedAccounts();
+    const BqETHDiamond = await ethers.getContract('BqETHDiamond_DiamondProxy', owner);
+    const diamondProxyAddress = await BqETHDiamond.getAddress();
+    const BqETHFacet = await ethers.getContractAt('BqETH', diamondProxyAddress);
+    // This call is executed once and then `createFixture` will ensure it is snapshotted
+    await BqETHFacet.setSecondsPer32Exp(145300).then((tx) => tx.wait()); 
+
+    return {
+      diamondAdmin: {
+        address: owner,
+        BqETHDiamond,
+      },
+    };
+  }
+);
+
+describe("BqETH contract", function () {
+
+  // beforeEach(async function() {
+  //   console.log("Setup before each test, e.g. clearing data."); // yarn hardhat deploy --reset
+  // });
+  
+  it("Deployment should create a diamond", async function () {
+    const {diamondAdmin} = await setupTest();
+
     const deps = await hre.deployments.all();
     console.log("Deployments: ", Object.keys(deps));
 
-    // await hre.deployments.fixture(["BqETHDiamond"]);
-    // const BqETHDecrypt = await hre.deployments.get('BqETHDecrypt');
-    // console.log(BqETHDecrypt.address);
+    const BqETHFacet = await hre.ethers.getContractAt('BqETH', diamondAdmin.address);
+    // This call is executed once and then `createFixture` will ensure it is snapshotted
+    const secPer32Exp = await BqETHFacet.getSecondsPer32Exp(); 
 
     // const BqETHPublish = await hre.deployments.get('BqETHPublish');
     // console.log(BqETHPublish);
 
-    // const ownerBalance = await bqeth.balanceOf(owner.address);
-    // expect(await bqeth.version()).to.equal(ownerBalance);
+    expect(await BqETHFacet.version()).to.equal(3.0);
+    expect(secPer32Exp).to.equal(145300);
   });
 
-  afterEach(async function() {
-    console.log("Running deployment once."); // yarn hardhat deploy --reset
-  })
+  // afterEach(async function() {
+  //   console.log("Setup after test, e.g. clearing data."); 
+  //   await hre.run("deploy", { reset: true }); // yarn hardhat deploy --reset
+  // })
 });

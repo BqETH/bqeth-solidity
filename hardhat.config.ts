@@ -23,12 +23,12 @@ const config: HardhatUserConfig = {
       chainId: 1337,
       allowUnlimitedContractSize: false,
       live: false,
-      saveDeployments: true,
+      saveDeployments: false,
       tags: ["test", "local"],
       deploy: [ 'deploy/' ],
       mining: {
         auto: false,
-        interval: [1000, 5000]
+        interval: [1000, 2000]
       }
     },
     localhost: {
