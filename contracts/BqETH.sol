@@ -124,7 +124,7 @@ contract BqETH is ReentrancyGuard {
     }
 
     function getRewardPerDay() public view returns (uint128 gweiPerDay) {
-        return LibBqETH.getRewardPerDay();
+        return LibBqETH._getRewardPerDay();
     }
 
     function setSecondsPer32Exp(uint128 secondsPer32Exp) public {
@@ -133,7 +133,7 @@ contract BqETH is ReentrancyGuard {
     }
 
     function getSecondsPer32Exp() public view returns (uint128 secondsPer32Exp) {
-        return LibBqETH.getSecondsPer32Exp();
+        return LibBqETH._getSecondsPer32Exp();
     }
 
     // To support receiving ETH by default

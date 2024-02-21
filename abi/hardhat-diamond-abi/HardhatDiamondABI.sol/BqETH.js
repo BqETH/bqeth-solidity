@@ -1,0 +1,1162 @@
+export default [
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "getActiveChain",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "creator",
+            "type": "address"
+          },
+          {
+            "internalType": "uint128",
+            "name": "t",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint128",
+            "name": "reward",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint256",
+            "name": "sdate",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "h3",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes",
+            "name": "x",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct Puzzle[]",
+        "name": "chain",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "getActivePolicy",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "ritualId",
+        "type": "string"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "mkh",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "getActivePuzzle",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "pid",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "N",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "x",
+        "type": "bytes"
+      },
+      {
+        "internalType": "uint256",
+        "name": "t",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "h3",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "reward",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "sdate",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_pid",
+        "type": "uint256"
+      }
+    ],
+    "name": "getPuzzle",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "pid",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "N",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "x",
+        "type": "bytes"
+      },
+      {
+        "internalType": "uint256",
+        "name": "t",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "h3",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "reward",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "sdate",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getRewardPerDay",
+    "outputs": [
+      {
+        "internalType": "uint128",
+        "name": "gweiPerDay",
+        "type": "uint128"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getSecondsPer32Exp",
+    "outputs": [
+      {
+        "internalType": "uint128",
+        "name": "secondsPer32Exp",
+        "type": "uint128"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "hasNoActivePuzzle",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "hash",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "_N",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "_x",
+        "type": "bytes"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_t",
+        "type": "uint256"
+      }
+    ],
+    "name": "puzzleKey",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint128",
+        "name": "gweiPerDay",
+        "type": "uint128"
+      }
+    ],
+    "name": "setRewardPerDay",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint128",
+        "name": "secondsPer32Exp",
+        "type": "uint128"
+      }
+    ],
+    "name": "setSecondsPer32Exp",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "sweepFunds",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "version",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "pid",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "decryptedMessage",
+        "type": "string"
+      }
+    ],
+    "name": "decryptionRewardClaimed",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_pid",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_h1",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_x2",
+        "type": "bytes32"
+      }
+    ],
+    "name": "claimDecryption",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_pid",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_decryptedMessage",
+        "type": "string"
+      }
+    ],
+    "name": "claimDecryptionReward",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_pid",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32[]",
+        "name": "proof",
+        "type": "bytes32[]"
+      },
+      {
+        "internalType": "bool[]",
+        "name": "proofPaths",
+        "type": "bool[]"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "leaf",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "string",
+        "name": "newcid",
+        "type": "string"
+      }
+    ],
+    "name": "claimDecryptionRewardIPFS",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "notifications",
+        "type": "string"
+      }
+    ],
+    "name": "NewNotificationSet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "ritualId",
+        "type": "string"
+      }
+    ],
+    "name": "NewPolicyRegistered",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "pid",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "ready",
+        "type": "bool"
+      }
+    ],
+    "name": "NewPuzzleRegistered",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "_N",
+        "type": "bytes"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint128",
+            "name": "t",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint128",
+            "name": "reward",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint256",
+            "name": "pid",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "h3",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes",
+            "name": "x",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct ChainData[]",
+        "name": "_c",
+        "type": "tuple[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_sdate",
+        "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "passThrough",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "services",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "servicesAmt",
+            "type": "uint64"
+          },
+          {
+            "internalType": "string",
+            "name": "notifications",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct BqETHData",
+        "name": "_bqethData",
+        "type": "tuple"
+      }
+    ],
+    "name": "registerFlippedPuzzle",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "_N",
+        "type": "bytes"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint128",
+            "name": "t",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint128",
+            "name": "reward",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint256",
+            "name": "pid",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "h3",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes",
+            "name": "x",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct ChainData[]",
+        "name": "_c",
+        "type": "tuple[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_sdate",
+        "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "ritualId",
+            "type": "string"
+          },
+          {
+            "internalType": "bool",
+            "name": "whistleBlower",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct PolicyData",
+        "name": "_policy",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "encryptedPayload",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "encryptedDelivery",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "condition",
+            "type": "string"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "mkh",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "mtroot",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct PayloadData",
+        "name": "_payload",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "passThrough",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "services",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "servicesAmt",
+            "type": "uint64"
+          },
+          {
+            "internalType": "string",
+            "name": "notifications",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct BqETHData",
+        "name": "_bqethData",
+        "type": "tuple"
+      }
+    ],
+    "name": "registerPuzzleChain",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "encryptedPayload",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "encryptedDelivery",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "condition",
+            "type": "string"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "mkh",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "mtroot",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct PayloadData",
+        "name": "_payload",
+        "type": "tuple"
+      }
+    ],
+    "name": "replaceMessageKit",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_notification",
+        "type": "string"
+      }
+    ],
+    "name": "replaceNotification",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "wb",
+        "type": "bool"
+      }
+    ],
+    "name": "setWhistleBlower",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "pid",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "ritualId",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "encryptedPayload",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "encryptedDelivery",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "solution",
+        "type": "bytes"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "sdate",
+        "type": "uint256"
+      }
+    ],
+    "name": "PuzzleInactive",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "pid",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "y",
+        "type": "bytes"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "sdate",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "reward",
+        "type": "uint256"
+      }
+    ],
+    "name": "RewardClaimed",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_pid",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_h1",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_x2",
+        "type": "bytes32"
+      }
+    ],
+    "name": "claimPuzzle",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_pid",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes",
+        "name": "_y",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes[]",
+        "name": "_proof",
+        "type": "bytes[]"
+      }
+    ],
+    "name": "claimReward",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "x",
+        "type": "uint256"
+      }
+    ],
+    "name": "log2",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "setMeDead",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "_getActiveChain",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "creator",
+            "type": "address"
+          },
+          {
+            "internalType": "uint128",
+            "name": "t",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint128",
+            "name": "reward",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint256",
+            "name": "sdate",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "h3",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes",
+            "name": "x",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct Puzzle[]",
+        "name": "chain",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "_getActivePuzzle",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "pid",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "N",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "x",
+        "type": "bytes"
+      },
+      {
+        "internalType": "uint256",
+        "name": "t",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "h3",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "reward",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "sdate",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_pid",
+        "type": "uint256"
+      }
+    ],
+    "name": "_getPuzzle",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "pid",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "N",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "x",
+        "type": "bytes"
+      },
+      {
+        "internalType": "uint256",
+        "name": "t",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "h3",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "reward",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "sdate",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "_getRewardPerDay",
+    "outputs": [
+      {
+        "internalType": "uint128",
+        "name": "gweiPerDay",
+        "type": "uint128"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "_getSecondsPer32Exp",
+    "outputs": [
+      {
+        "internalType": "uint128",
+        "name": "secondsPer32Exp",
+        "type": "uint128"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "_N",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "_x",
+        "type": "bytes"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_t",
+        "type": "uint256"
+      }
+    ],
+    "name": "_puzzleKey",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "i",
+        "type": "uint256"
+      }
+    ],
+    "name": "toHexString",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  }
+];

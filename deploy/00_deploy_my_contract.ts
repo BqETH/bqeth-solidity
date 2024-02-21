@@ -6,7 +6,7 @@ import 'hardhat-deploy';
 import 'hardhat-deploy-ethers';
 
 
-// This works with  yarn hardhat deploy --network localhost --tags MyDiamond [--reset]
+// This works with  yarn hardhat deploy --network localhost --tags BqETHDiamond [--reset]
 // yarn hardhat clean
 // yarn hardhat node --no-deploy
 const deployDiamondFunc: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -68,11 +68,8 @@ const deployDiamondFunc: DeployFunction = async function (hre: HardhatRuntimeEnv
   };
   
 // export default deployDiamondFunc;
-deployDiamondFunc.tags = ['BqETHDiamond'];
+deployDiamondFunc.tags = ['BqETHDiamond']; 
 
 // Similar
+export default deployDiamondFunc;
 module.exports = deployDiamondFunc;
-// module.exports.tags = ['MyContract'];
-
-
-

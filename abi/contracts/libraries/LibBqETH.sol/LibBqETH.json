@@ -159,6 +159,32 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "_getRewardPerDay",
+    "outputs": [
+      {
+        "internalType": "uint128",
+        "name": "gweiPerDay",
+        "type": "uint128"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "_getSecondsPer32Exp",
+    "outputs": [
+      {
+        "internalType": "uint128",
+        "name": "secondsPer32Exp",
+        "type": "uint128"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "bytes",
@@ -185,32 +211,6 @@
       }
     ],
     "stateMutability": "pure",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getRewardPerDay",
-    "outputs": [
-      {
-        "internalType": "uint128",
-        "name": "gweiPerDay",
-        "type": "uint128"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getSecondsPer32Exp",
-    "outputs": [
-      {
-        "internalType": "uint128",
-        "name": "secondsPer32Exp",
-        "type": "uint128"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {

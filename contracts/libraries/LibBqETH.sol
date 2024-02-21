@@ -227,7 +227,7 @@ library LibBqETH {
         bms.gweiPerDay = gweiPerDay;
     }
 
-    function getRewardPerDay() public view returns (uint128 gweiPerDay) {
+    function _getRewardPerDay() public view returns (uint128 gweiPerDay) {
         BqETHMetrics storage bms = bqethMetrics();
         return bms.gweiPerDay;
     }
@@ -237,7 +237,7 @@ library LibBqETH {
         bms.secondsPer32Exp = secondsPer32Exp;
     }
 
-    function getSecondsPer32Exp() public view returns (uint128 secondsPer32Exp) {
+    function _getSecondsPer32Exp() public view returns (uint128 secondsPer32Exp) {
         BqETHMetrics storage bms = bqethMetrics();
         return bms.secondsPer32Exp;
     }
