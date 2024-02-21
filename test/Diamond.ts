@@ -1,5 +1,8 @@
 import {DiamondOptions} from 'hardhat-deploy/types';
+import {HardhatRuntimeEnvironment} from 'hardhat/types';
 import hre from "hardhat";
+import 'hardhat-deploy';
+import 'hardhat-deploy-ethers';
 
 // const setupTest = hre.deployments.createFixture(
 //   async ({deployments, getNamedAccounts, ethers}, options) => {
@@ -87,11 +90,12 @@ describe("BqETH contract", function () {
     const deps = await hre.deployments.all();
     console.log("Deployments: ", Object.keys(deps));
 
-    // await hre.deployments.fixture(["BqETHDecrypt"]);
+    // await hre.deployments.fixture(["BqETHDiamond"]);
     // const BqETHDecrypt = await hre.deployments.get('BqETHDecrypt');
     // console.log(BqETHDecrypt.address);
-    const BqETHPublish = await hre.deployments.get('BqETHPublish');
-    console.log(BqETHPublish);
+
+    // const BqETHPublish = await hre.deployments.get('BqETHPublish');
+    // console.log(BqETHPublish);
 
     // const ownerBalance = await bqeth.balanceOf(owner.address);
     // expect(await bqeth.version()).to.equal(ownerBalance);
