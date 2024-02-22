@@ -6,169 +6,42 @@ import 'hardhat-deploy-ethers';
 import { expect } from 'chai';
 import {BqETH} from '../types/contracts/index.ts';
 
-// const setupTest = hre.deployments.createFixture(
-//   async ({deployments, getNamedAccounts, ethers}, options) => {
-//     await deployments.fixture(); // ensure you start from a fresh deployments
-
-//     const {deployer, diamondAdmin} = await hre.getNamedAccounts();
-
-//     // The tests assume that things get mined right away
-//     // TODO: This means the tests are wildly fragile and probably need to be rewritten
-//     await hre.network.provider.send('evm_setAutomine', [false]);
-//     await hre.network.provider.send('evm_setIntervalMining', [100]);
-
-//     const bigNumberLibrary = await hre.ethers.deployContract("BigNumbers");
-//     const bigNumberLibraryAddress = await bigNumberLibrary.getAddress();
-//     const merkleTreeVerifier = await hre.ethers.deployContract("MerkleTreeVerifier");
-//     const merkleTreeVerifierAddress = await merkleTreeVerifier.getAddress();
-//     const pietrzakVerifier = await hre.ethers.deployContract("PietrzakVerifier");
-//     const pietrzakVerifierAddress = await pietrzakVerifier.getAddress();
-//     const libBqETH = await hre.ethers.deployContract("LibBqETH");
-//     const libBqETHAddress = await libBqETH.getAddress();
-    
-//     await bigNumberLibrary.waitForDeployment();
-//     console.log(`BigNumbers deployed to: ${bigNumberLibraryAddress}`);
-//     await merkleTreeVerifier.waitForDeployment();
-//     console.log(`MerkleTreeVerifier deployed to: ${merkleTreeVerifierAddress}`);
-//     await pietrzakVerifier.waitForDeployment();
-//     console.log(`PietrzakVerifier deployed to: ${pietrzakVerifierAddress}`);
-//     await libBqETH.waitForDeployment();
-//     console.log(`LibBqETH deployed to: ${libBqETHAddress}`);
-
-//     const diamondOptions: DiamondOptions = {
-//       from: deployer,
-//       owner: diamondAdmin,
-//       autoMine: true,
-//       log: true,
-//       libraries: {
-//         // Library Names must match what the compiler expects
-//         BigNumbers: bigNumberLibraryAddress,
-//         PietrzakVerifier: pietrzakVerifierAddress,
-//         LibBqETH: libBqETHAddress,
-//         MerkleTreeVerifier: merkleTreeVerifierAddress
-//       },
-//       facets: [
-//         'IERC20MetaDataStub',
-//         'BqETH',
-//         'BqETHPublish',
-//         'BqETHSolve',
-//         'BqETHDecrypt'
-//       ],
-//       defaultOwnershipFacet: true,
-//       defaultCutFacet: true,
-//       waitConfirmations: 1
-//     };
-  
-//     const dr = await hre.deployments.diamond.deploy('BqETHTestDiamond', diamondOptions);
-
-//     // Now we're going to call the BqETH facet via the diamond Proxy to set the secPer32Exp value
-//     const {owner} = await getNamedAccounts();
-//     const BqETHDiamond = await ethers.getContract('BqETHDiamond_DiamondProxy', owner);
-//     const diamondProxyAddress = await BqETHDiamond.getAddress();
-//     const BqETHFacet = await ethers.getContractAt('BqETH', diamondProxyAddress);
-//     // This call is executed once and then `createFixture` will ensure it is snapshotted
-//     await BqETHFacet.setSecondsPer32Exp(145300).then((tx) => tx.wait()); 
-
-//     return {
-//       diamondAdmin: {
-//         address: owner,
-//         BqETHDiamond,
-//       },
-//     };
-//   }
-// );
+const REWARDPERDAY = 700;
+const SECPER32EXP = 145300;
 
 describe("BqETH contract", function () {
+  var diamondProxyAddress: string;
 
-  // beforeEach(async function() {
-  //   console.log("Setup before each test, e.g. clearing data."); // yarn hardhat deploy --reset
-  // });
-  
-  it("Deployment should create a diamond", async function () {
-    const {deployer, diamondAdmin} = await hre.getNamedAccounts();
-
-    // The tests assume that things get mined right away
-    // TODO: This means the tests are wildly fragile and probably need to be rewritten
-    await hre.network.provider.send('evm_setAutomine', [false]);
-    await hre.network.provider.send('evm_setIntervalMining', [100]);
-
-    const bigNumberLibrary = await hre.ethers.deployContract("BigNumbers");
-    const bigNumberLibraryAddress = await bigNumberLibrary.getAddress();
-    const merkleTreeVerifier = await hre.ethers.deployContract("MerkleTreeVerifier");
-    const merkleTreeVerifierAddress = await merkleTreeVerifier.getAddress();
-    const pietrzakVerifier = await hre.ethers.deployContract("PietrzakVerifier");
-    const pietrzakVerifierAddress = await pietrzakVerifier.getAddress();
-    const libBqETH = await hre.ethers.deployContract("LibBqETH");
-    const libBqETHAddress = await libBqETH.getAddress();
-    
-    await bigNumberLibrary.waitForDeployment();
-    console.log(`BigNumbers deployed to: ${bigNumberLibraryAddress}`);
-    await merkleTreeVerifier.waitForDeployment();
-    console.log(`MerkleTreeVerifier deployed to: ${merkleTreeVerifierAddress}`);
-    await pietrzakVerifier.waitForDeployment();
-    console.log(`PietrzakVerifier deployed to: ${pietrzakVerifierAddress}`);
-    await libBqETH.waitForDeployment();
-    console.log(`LibBqETH deployed to: ${libBqETHAddress}`);
-
-    const diamondOptions: DiamondOptions = {
-      from: deployer,
-      owner: diamondAdmin,
-      autoMine: true,
-      log: true,
-      libraries: {
-        // Library Names must match what the compiler expects
-        BigNumbers: bigNumberLibraryAddress,
-        PietrzakVerifier: pietrzakVerifierAddress,
-        LibBqETH: libBqETHAddress,
-        MerkleTreeVerifier: merkleTreeVerifierAddress
-      },
-      facets: [
-        'IERC20MetaDataStub',
-        'BqETH',
-        'BqETHPublish',
-        'BqETHSolve',
-        'BqETHDecrypt'
-      ],
-      defaultOwnershipFacet: true,
-      defaultCutFacet: true,
-      waitConfirmations: 1
-    };
-  
-    const dr = await hre.deployments.diamond.deploy('BqETHDiamond', diamondOptions);
-    console.log(`Diamond Deployment finished`);
-
-    // Now we're going to call the BqETH facet via the diamond Proxy to set the secPer32Exp value
-    const {owner} = await hre.getNamedAccounts();
-    const BqETHDiamond = await hre.ethers.getContract('BqETHDiamond_DiamondProxy', owner);
-    const diamondProxyAddress = await BqETHDiamond.getAddress();
-    console.log(`Diamond Deployed at: `, diamondProxyAddress);
-
-    const BqETHFacet = (await hre.ethers.getContractAt('BqETH', diamondProxyAddress)) as BqETH;
-
-    // const BqETHFacetAddress = await BqETHDiamond..facets('BqETHFacet');
-    // const BqETHFacet = await hre.ethers.getContractAt('BqETH', diamondProxyAddress);
-    console.log(`Found BqETH Facet `, await BqETHFacet.getAddress());
-    // This call is executed once and then `createFixture` will ensure it is snapshotted
-    await BqETHFacet.setSecondsPer32Exp(145300).then((tx) => tx.wait()); 
-    console.log(`Wrote BqETH Facet `);
-
-    // Dump deployments
-    // const deps = await hre.deployments.all();
-    // console.log("Deployments: ", Object.keys(deps));
-
-    const BqETH = await hre.ethers.getContractAt('BqETH', diamondProxyAddress) as BqETH;
-    // This call is executed once and then `createFixture` will ensure it is snapshotted
-    const secPer32Exp = await BqETH.getSecondsPer32Exp(); 
-
-    // const BqETHPublish = await hre.deployments.get('BqETHPublish');
-    // console.log(BqETHPublish);
-
-    expect(await BqETHFacet.version()).to.equal("BqETH Version 3.0");
-    expect(secPer32Exp).to.equal(145300);
+  beforeEach(async () => {
+      await hre.deployments.fixture(["BqETHDiamond"]);
+      // console.log(`Diamond Deployment finished`);
+      const {owner} = await hre.getNamedAccounts();
+      const BqETHDiamond = await hre.ethers.getContract('BqETHDiamond_DiamondProxy', owner);
+      diamondProxyAddress = await BqETHDiamond.getAddress();
+      // console.log(`Diamond Deployed at: `, diamondProxyAddress);
+      const BqETHFacet = (await hre.ethers.getContractAt('BqETH', diamondProxyAddress)) as BqETH;
+      // console.log(`Found BqETH Facet `, await BqETHFacet.getAddress());
+      await BqETHFacet.setRewardPerDay(REWARDPERDAY).then((tx) => tx.wait()); 
+      // console.log(`Wrote BqETH Facet setRewardPerDay`);
+      await BqETHFacet.setSecondsPer32Exp(145300).then((tx) => tx.wait()); 
+      // console.log(`Wrote BqETH Facet setSecondsPer32Exp`);
   });
 
-  // afterEach(async function() {
-  //   console.log("Setup after test, e.g. clearing data."); 
-  //   await hre.run("deploy", { reset: true }); // yarn hardhat deploy --reset only needed when hardhat network saveDeployments is true
-  // })
+  it("Deployment should have the right version", async function () {
+    const BqETHFacet = (await hre.ethers.getContractAt('BqETH', diamondProxyAddress)) as BqETH;
+    expect(await BqETHFacet.version()).to.equal("BqETH Version 3.0");
+  });
+
+  it("Deployment should have the preset Reward", async function () {
+    const BqETH = await hre.ethers.getContractAt('BqETH', diamondProxyAddress) as BqETH;
+    const rewardPerDay = await BqETH.getRewardPerDay(); 
+    expect(rewardPerDay).to.equal(REWARDPERDAY);
+  });
+  
+  it("Deployment should have the preset SecPer32Exp", async function () {
+    const BqETH = await hre.ethers.getContractAt('BqETH', diamondProxyAddress) as BqETH;
+    const secPer32Exp = await BqETH.getSecondsPer32Exp(); 
+    expect(secPer32Exp).to.equal(SECPER32EXP);
+  });
+
 });

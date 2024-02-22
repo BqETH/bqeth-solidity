@@ -59,16 +59,12 @@ const deployDiamondFunc: DeployFunction = async function (hre: HardhatRuntimeEnv
       defaultCutFacet: true,
     };
   
-    await diamond.deploy('BqETHDiamond', diamondOptions).then(() => process.exit(0))
-        .catch(error => {
-          console.error(error)
-          process.exit(1)
-        })
-    ;
+    await diamond.deploy('BqETHDiamond', diamondOptions)
   };
   
-// export default deployDiamondFunc;
-deployDiamondFunc.tags = ['BqETHDiamond']; 
+// 'all' here is to indicate that's all of the contracts, for tests that wait for 
+// fixture 'all' to be deployed
+deployDiamondFunc.tags = ['all', 'BqETHDiamond']; 
 
 // Similar
 export default deployDiamondFunc;
