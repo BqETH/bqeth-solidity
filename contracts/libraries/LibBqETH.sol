@@ -241,7 +241,6 @@ library LibBqETH {
 
     function _getRewardPerDay() public view 
     returns (uint128 gweiPerDay) {
-        LibDiamond.enforceIsContractOwner();
         BqETHMetrics storage bms = bqethMetrics();
         return bms.gweiPerDay;
     }
@@ -254,7 +253,6 @@ library LibBqETH {
 
     function _getSecondsPer32Exp() public view 
     returns (uint128 secondsPer32Exp) {
-        LibDiamond.enforceIsContractOwner();
         BqETHMetrics storage bms = bqethMetrics();
         return bms.secondsPer32Exp;
     }
