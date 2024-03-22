@@ -98,9 +98,9 @@ contract BqETH is ReentrancyGuard {
         uint256 ph = bs.activeChainHead[user];
         ActivePolicy memory policy = bs.activePolicies[user];
         if (ph != 0)
-            return 0;
+            return 0;           // Return False, address has an active puzzle
         else {
-            return policy.mkh;
+            return policy.mkh;  // Return True, address has NO active puzzle
         }
     }
 
@@ -120,7 +120,7 @@ contract BqETH is ReentrancyGuard {
 
     function setRewardPerDay(uint128 gweiPerDay) public {
         LibDiamond.enforceIsContractOwner();
-        LibBqETH.setRewardPerDay(gweiPerDay);
+        LibBqETH._setRewardPerDay(gweiPerDay);
     }
 
     function getRewardPerDay() public view returns (uint128 gweiPerDay) {
@@ -129,7 +129,7 @@ contract BqETH is ReentrancyGuard {
 
     function setSecondsPer32Exp(uint128 secondsPer32Exp) public {
         LibDiamond.enforceIsContractOwner();
-        LibBqETH.setSecondsPer32Exp(secondsPer32Exp);
+        LibBqETH._setSecondsPer32Exp(secondsPer32Exp);
     }
 
     function getSecondsPer32Exp() public view returns (uint128 secondsPer32Exp) {
@@ -140,14 +140,4 @@ contract BqETH is ReentrancyGuard {
     receive() external payable {}
 
     fallback() external payable {}
-
-    // ================================================================================================================================================
-    // TODO: Remove these functions. This is for testing purposes only. DO NOT RELEASE TO PRODUCTION
-
-    function sweepFunds() public {
-        LibDiamond.enforceIsContractOwner();
-        require(address(this).balance >= 0, "Insufficient Funds.");
-        (bool success, ) = msg.sender.call{value: address(this).balance}("");
-        require(success, "Transfer failed.");
-    }
 }

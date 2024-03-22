@@ -24,7 +24,7 @@ struct PolicyData {
 struct PayloadData {
     string encryptedPayload;
     string encryptedDelivery;
-    string condition;
+    string condition;   // Maybe remove this ?
     bytes32 mkh;
     bytes32 mtroot;
 }
@@ -49,6 +49,12 @@ contract BqETHPublish is ReentrancyGuard {
     event NewNotificationSet(
         address sender,
         string notifications    // BqETH encrypted Notification payload
+    );
+
+    // Used for BqETH Refund of a portion of services
+    event CancellationNotification(
+        address sender,
+        uint128[] times
     );
 
     modifier onlyContractCustomer(address _user) {
@@ -100,7 +106,7 @@ contract BqETHPublish is ReentrancyGuard {
                 first_pid = ph;
             }
 
-            // TODO msg.value better be more than the sum of puzzle chain rewards
+            // msg.value better be more than the sum of puzzle chain rewards
             require(msg.value >= reward_total, "Insufficient value provided.");
 
             console.log(
@@ -154,7 +160,7 @@ contract BqETHPublish is ReentrancyGuard {
         bs.activePolicies[msg.sender] = ActivePolicy(
             msg.sender,
             first_pid,
-            _payload.mkh,
+            _payload.mkh,                   // Decryption reward gating
             _payload.mtroot,
             _payload.encryptedPayload,
             _payload.encryptedDelivery,
@@ -201,10 +207,17 @@ contract BqETHPublish is ReentrancyGuard {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         // Check previous
         uint256 prev = bs.activeChainHead[msg.sender];
-        // Puzzle memory previous = userPuzzles[prev];
+        
         // Puzzle flip restricted to creator of the previous puzzle
         address previous = bs.userPuzzles[prev].creator;
         require(msg.sender == previous, "Only puzzle owner.");
+
+        // Prune previous chains and refund the user if necessary
+        uint128 refund = pruneChains(msg.sender);
+        if (refund > 0) {
+            (bool success, ) = msg.sender.call{value: refund}("");
+            require(success, "Refund failed.");
+        }
 
         uint256 first_pid = recordPuzzles(_N, _c, _sdate);
         // Add to the escrow total for the creator's address.
@@ -265,5 +278,97 @@ contract BqETHPublish is ReentrancyGuard {
         policy.whistleBlower = wb;
     }
 
-    
+
+    // Cancel, Refund, Pruning, Flip Credit, functions
+
+    // Prune all chains for this user to the last unsolved puzzle, return the sum of rewards to refund
+    function pruneChains(address _creator) internal returns (uint128) {
+
+        LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
+        ActivePolicy memory policy = bs.activePolicies[msg.sender];
+        uint128 refund  = 0;
+
+        // Traverse all the chains
+        Chain[] memory mychains = bs.userChains[_creator].chains;
+        uint chainsLength = mychains.length;
+        for (uint i = 0; i < chainsLength; i++) {
+            // Within each chain, delete all puzzles except the first unsolved one
+            // A chain of (pid,x,sdate) could be [(pid1,'',pid2),(pi2,'',pid3),(pid3,0x0342,pid4), (pid4,0x547a,pid5), (pid5,03453,sdate)]
+            // and pid3 is active, so only pid4 and pid5 need to be removed, then replace pid4 inside pid3 with sdate from pid5
+            Chain memory c = mychains[i];
+            uint256 pid_to_check = c.head;
+            uint256 last_active = 0;
+            while (pid_to_check > Y3K) {    // There is a next puzzle
+                uint256 next_pid = bs.userPuzzles[pid_to_check].sdate;
+
+                if (last_active == 0  && 
+                    bs.userPuzzles[pid_to_check].x.length == 0) {
+                    // We just found the first unsolved puzzle
+                    last_active = pid_to_check;
+                }
+                else if (last_active != 0 && last_active != pid_to_check) {
+                    // This puzzle isn't the last unsolved, 
+                    // Add its reward to the refund
+                    refund += bs.userPuzzles[pid_to_check].reward;
+                    // Let the farmers know
+                    emit LibBqETH.PuzzleInactive(
+                        pid_to_check, // Puzzle Hash
+                        policy.ritualId, // The ritual Id key
+                        "","","",
+                        bs.userPuzzles[pid_to_check].sdate
+                    );
+                    // Delete it
+                    delete bs.userPuzzles[pid_to_check];
+                }
+                pid_to_check = next_pid;
+            }
+            // pid_to_check is now sdate for the last puzzle in the chain
+            bs.userPuzzles[last_active].sdate = pid_to_check;
+        }
+
+        return refund;
+    }
+
+
+    // Inspired from claimPuzzleReward
+    function cancelEverything() public payable onlyContractCustomer(msg.sender) returns (uint256) {
+        LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
+
+        // Now take care of wiping out secrets so they are undecryptable forever
+        // User will appear 'dead' but their payload will never be decryptable
+        bs.activePolicies[msg.sender].mkh = keccak256(abi.encodePacked(Y3K));
+
+        // Memory arrays are not resizable, and we don't want this stuff in storage
+        uint128[] memory times = new uint128[](32);
+        uint index = 0;
+        // collect all puzzle times from the active puzzle down to the end of the chain
+        uint256 pid_to_check = bs.activeChainHead[msg.sender];
+        while (pid_to_check > Y3K) {
+            // Clear puzzle chain
+            uint256 next_pid = bs.userPuzzles[pid_to_check].sdate;
+            if (bs.userPuzzles[pid_to_check].x.length != 0) {
+                times[index] = bs.userPuzzles[pid_to_check].t;
+                index++;
+            }
+            pid_to_check = next_pid;
+        }
+        // Now that we have the list of all puzzle times being cancelled
+        // Send the event for services refund
+        emit CancellationNotification(
+            msg.sender,
+            times
+        );
+
+        // Prune previous chains and refund the user if necessary
+        uint128 refund = pruneChains(msg.sender);
+        if (refund > 0) {
+            (bool success, ) = msg.sender.call{value: refund}("");
+            require(success, "Refund failed.");
+            bs.escrow_balances[msg.sender] -= refund;
+        }
+
+        // This leaves an amount in escrow for the remaining active puzzles
+        // and for the decryption reward, which will be sent to BqETH 
+        // when the last Puzzle has been claimed.
+    }
 }

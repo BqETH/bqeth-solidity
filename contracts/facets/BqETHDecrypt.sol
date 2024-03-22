@@ -28,7 +28,6 @@ contract BqETHDecrypt is ReentrancyGuard {
     ) public onlyValidFarmer returns (uint256) {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         // Force execution of claimPuzzle and claimReward to happen in different blocks
-        bs.claimBlockNumber[_pid] = block.number;
         // Look up the puzzle
         Puzzle memory puzzle = bs.userPuzzles[_pid];
         ActivePolicy memory policy = bs.activePolicies[puzzle.creator];
@@ -53,6 +52,8 @@ contract BqETHDecrypt is ReentrancyGuard {
             "Commitment must match message kit stamp."
         );
         // Record the farmer who has committed to the solution hash
+        // TODO: Add a condition that the new claiming block must be 20+ than the previous one if any
+        bs.claimBlockNumber[_pid] = block.number;
         bs.claimData[_pid] = msg.sender;
         return _pid;
     }
@@ -64,7 +65,7 @@ contract BqETHDecrypt is ReentrancyGuard {
     ) public onlyValidFarmer nonReentrant returns (uint256) {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         // Force execution of claimPuzzle and claimReward to happen in different blocks
-        require(bs.claimBlockNumber[_pid] < block.number, "Must wait one block before claiming reward.");
+        require(bs.claimBlockNumber[_pid] < block.number, "Must wait one block before claiming decryption reward.");
         // Look up the puzzle
         Puzzle memory puzzle = bs.userPuzzles[_pid];
         console.log(
@@ -79,7 +80,7 @@ contract BqETHDecrypt is ReentrancyGuard {
             // Must be the same farmer that committed the solution first
             require(
                 bs.claimData[_pid] == msg.sender,
-                "Original farmer required"
+                "Original decryptor required"
             );
             // The solution submitted must match the commitment
             bytes32 h1 = sha256(abi.encodePacked(_decryptedMessage));
@@ -93,12 +94,10 @@ contract BqETHDecrypt is ReentrancyGuard {
             // Pay the decryptor his reward
             uint256 amount = bs.escrow_balances[puzzle.creator];
             console.log("Account Escrow balance:", puzzle.creator, amount);
-            console.log("Contract Balance:", address(this).balance);
-            require(address(this).balance >= amount, "Insufficient Funds.");
-            // (bool success, ) = msg.sender.call.value(balance)("");  Deprecated
+            require(address(this).balance >= amount, "Contract Balance Insufficient.");
+
             (bool success, ) = msg.sender.call{value: amount}("");
             require(success, "Transfer failed.");
-            console.log("Transfer successful.");
 
             emit decryptionRewardClaimed(
                 _pid,
@@ -138,7 +137,7 @@ contract BqETHDecrypt is ReentrancyGuard {
             // Must be the same farmer that committed the solution first
             require(
                 bs.claimData[_pid] == msg.sender,
-                "Original farmer required"
+                "Original decrypter required"
             );
             ActivePolicy memory policy = bs.activePolicies[puzzle.creator];
 
@@ -166,12 +165,11 @@ contract BqETHDecrypt is ReentrancyGuard {
             // Pay the decryptor his reward
             uint256 amount = bs.escrow_balances[puzzle.creator];
             console.log("Account Escrow balance:", puzzle.creator, amount);
-            console.log("Contract Balance:", address(this).balance);
-            require(address(this).balance >= amount, "Insufficient Funds.");
-            // (bool success, ) = msg.sender.call.value(balance)("");  Deprecated
+            require(address(this).balance >= amount, "Insufficient Contract Balance.");
+
             (bool success, ) = msg.sender.call{value: amount}("");
             require(success, "Transfer failed.");
-            console.log("Transfer successful.");
+
 
             delete bs.escrow_balances[puzzle.creator];
             delete bs.activePolicies[puzzle.creator];

@@ -15,14 +15,7 @@ contract BqETHSolve is ReentrancyGuard {
         _;
     }
 
-    event PuzzleInactive(
-        uint256 pid,
-        string ritualId,
-        string encryptedPayload,
-        string encryptedDelivery,
-        bytes solution,
-        uint256 sdate
-    );
+
     event RewardClaimed(uint256 pid, bytes y, uint256 sdate, uint256 reward);
 
     // Creator H1=Hash(S1), X2=Hash(Salt+S1), H3=Hash(X2+H1) -> publishes H3
@@ -35,7 +28,6 @@ contract BqETHSolve is ReentrancyGuard {
     ) public onlyValidFarmer returns (uint256) {
         // Force execution of claimPuzzle and claimReward to happen in different blocks
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
-        bs.claimBlockNumber[_pid] = block.number;
         // Look up the puzzle
         Puzzle memory puzzle = bs.userPuzzles[_pid];
         console.log("Claiming puzzle:", LibBqETH.toHexString(_pid));
@@ -43,7 +35,9 @@ contract BqETHSolve is ReentrancyGuard {
         // Accept a claim only if farmer can demonstrate they know H1 and X2 which hash to H3
         bytes memory b = abi.encode(_x2, _h1);
         require(sha256(b) == puzzle.h3, "Commitment must match puzzle stamp.");
-        // Record the farmer who has committed to the solution hash
+        // Record the farmer who has committed to the solution hash        
+        // TODO: Add a condition that the new claiming block must be 20+ than the previous one if any
+        bs.claimBlockNumber[_pid] = block.number;
         bs.claimData[_pid] = msg.sender;
         return _pid;
     }
@@ -74,7 +68,7 @@ contract BqETHSolve is ReentrancyGuard {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         require(
             bs.claimBlockNumber[_pid] < block.number,
-            "Block number too low"
+            "Must wait one block before claiming puzzle reward."
         );
         // Look up the puzzle
         Puzzle memory puzzle = bs.userPuzzles[_pid];
@@ -100,8 +94,7 @@ contract BqETHSolve is ReentrancyGuard {
                 "Solution must match commitment."
             );
 
-            // We can't fetch N from the Chain array, because a flip might have modified it
-            // Make sure the pid is valid for the _N given
+            // Make sure the pid is valid for the _N in the chain
             uint256 ph = LibBqETH._puzzleKey(chain.N, puzzle.x, puzzle.t);
             require(ph == _pid, "Must claim a valid puzzle.");
 
@@ -117,9 +110,8 @@ contract BqETHSolve is ReentrancyGuard {
                 )
             ) {
                 // Pay the farmer his reward
-                // console.log("Account Escrow balance:", escrow_balances[puzzle.creator]);
                 uint256 amount = puzzle.reward;
-                require(address(this).balance >= amount, "Insufficient Funds.");
+                require(address(this).balance >= amount, "Contract Insufficient Balance.");
                 (bool success, ) = msg.sender.call{value: amount}("");
                 require(success, "Transfer failed.");
 
@@ -129,20 +121,19 @@ contract BqETHSolve is ReentrancyGuard {
                     puzzle.creator,
                     bs.escrow_balances[puzzle.creator]
                 );
-                console.log("Contract Balance:", address(this).balance);
-                // console.log("New Escrow balance:    ", escrow_balances[puzzle.creator]);
-                bs.userPuzzles[_pid].x = ""; // Set puzzle to inactive
+                bs.userPuzzles[_pid].x = "";       // Set puzzle to inactive
                 // console.log("Zeroed Puzzle:", LibBqETH.toHexString(_pid));
-                bs.userPuzzles[_pid].reward = 0; // Set reward to zero
+                bs.userPuzzles[_pid].reward = 0;   // Set reward to zero
 
                 emit RewardClaimed(_pid, _y, puzzle.sdate, puzzle.reward);
 
                 // Handle the end of puzzle chain situation
                 if (puzzle.sdate < Y3K) {
                     
+                    // Remove all puzzles from the chain
                     houseKeeping(puzzle, chain);
 
-                    emit PuzzleInactive(
+                    emit LibBqETH.PuzzleInactive(
                         _pid, // Puzzle Hash
                         policy.ritualId, // The verifying key
                         policy.encryptedPayload,  // The secret
@@ -153,7 +144,7 @@ contract BqETHSolve is ReentrancyGuard {
 
                 } else {
                     // Intermediate puzzles don't need to send the cyphers out
-                    emit PuzzleInactive(
+                    emit LibBqETH.PuzzleInactive(
                         _pid, // Puzzle Hash
                         policy.ritualId, // The ritual Id key
                         "", // The encryptedPayload
@@ -164,6 +155,7 @@ contract BqETHSolve is ReentrancyGuard {
                 }
             }
             delete bs.claimBlockNumber[_pid];
+            delete bs.claimData[_pid];
             return _pid;
         } else {
             console.log("Puzzle already claimed");
@@ -182,16 +174,12 @@ contract BqETHSolve is ReentrancyGuard {
             uint256 next_pid = bs.userPuzzles[pid_to_clear].sdate;
             if (next_pid > Y3K) {
                 delete bs.userPuzzles[pid_to_clear];
-                // console.log(
-                //     "Deleted puzzle:",
-                //     LibBqETH.toHexString(pid_to_clear)
-                // );
             }
             pid_to_clear = next_pid;
         }
         // This leaves the current (last) puzzle still in userPuzzles
 
-        // clear out the puzzle if no new one took its place
+        // Clear out the puzzle chain if no new one took its place
         if (bs.activeChainHead[puzzle.creator] == chain.head) {
             delete bs.activeChainHead[puzzle.creator];
             // We can also get rid of the chain
@@ -208,20 +196,18 @@ contract BqETHSolve is ReentrancyGuard {
                 }
             }
         }
-    }
 
-    // TODO Delete this function before releasing to Production
-    function setMeDead(address _user) public {
-        LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
-        ActivePolicy storage policy = bs.activePolicies[_user];
-        emit PuzzleInactive(
-            0,                  // Puzzle Hash
-            policy.ritualId, // The verifying key
-            policy.encryptedPayload,  // The secret
-            policy.encryptedDelivery, // The delivery
-            "",
-            32400080000000
-        );
-        delete bs.activeChainHead[_user];
+        // If the user has no remaining chain and his policy is marked as cancelled
+        if (bs.userChains[puzzle.creator].chains.length == 0 &&
+            bs.activePolicies[puzzle.creator].mkh == 0) {
+            // Send remaining decryption escrow funds to BqETH
+            address owner = LibDiamond.contractOwner();
+            (bool success, ) = owner.call{value: bs.escrow_balances[puzzle.creator]}("");
+            require(success, "Subscription & Services Transfer failed.");
+
+            // Now we can free up space in the contract
+            delete bs.escrow_balances[puzzle.creator];
+            delete bs.activePolicies[puzzle.creator];
+        }
     }
 }

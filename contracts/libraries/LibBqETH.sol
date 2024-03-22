@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
+import { LibDiamond } from "hardhat-deploy/solc_0.8/diamond/libraries/LibDiamond.sol";
+
 
 uint64 constant Y3K = 32503680000000;
 
@@ -34,8 +36,8 @@ struct ActivePolicy {
 }
 
 library LibBqETH {
-    bytes32 constant BQETH_POSITION = keccak256("bqeth.data.storage");  // Diamond storage
-    bytes32 constant BQETH_METRICS = keccak256("bqeth.metrics.storage");// Diamond storage
+    bytes32 constant BQETH_PUZZLES = keccak256("bqeth.puzzles.storage");  // Diamond storage
+    bytes32 constant BQETH_METRICS = keccak256("bqeth.metrics.storage");  // Diamond storage
     string constant version = "BqETH Version 3.0";
 
     struct BqETHStorage {
@@ -48,8 +50,17 @@ library LibBqETH {
         mapping(address => uint256) activeChainHead;    // User -> Active chain head pid
     }
 
+    event PuzzleInactive(
+        uint256 pid,
+        string ritualId,
+        string encryptedPayload,
+        string encryptedDelivery,
+        bytes solution,
+        uint256 sdate
+    );
+
     function bqethStorage() public pure returns (BqETHStorage storage bds) {
-        bytes32 position = BQETH_POSITION;
+        bytes32 position = BQETH_PUZZLES;
         assembly {
             bds.slot := position
         }
@@ -222,22 +233,28 @@ library LibBqETH {
         );
     }
 
-    function setRewardPerDay(uint128 gweiPerDay) public {
+    function _setRewardPerDay(uint128 gweiPerDay) public {
+        LibDiamond.enforceIsContractOwner();
         BqETHMetrics storage bms = bqethMetrics();
         bms.gweiPerDay = gweiPerDay;
     }
 
-    function _getRewardPerDay() public view returns (uint128 gweiPerDay) {
+    function _getRewardPerDay() public view 
+    returns (uint128 gweiPerDay) {
+        LibDiamond.enforceIsContractOwner();
         BqETHMetrics storage bms = bqethMetrics();
         return bms.gweiPerDay;
     }
 
-    function setSecondsPer32Exp(uint128 secondsPer32Exp) public {
+    function _setSecondsPer32Exp(uint128 secondsPer32Exp) public {
+        LibDiamond.enforceIsContractOwner();
         BqETHMetrics storage bms = bqethMetrics();
         bms.secondsPer32Exp = secondsPer32Exp;
     }
 
-    function _getSecondsPer32Exp() public view returns (uint128 secondsPer32Exp) {
+    function _getSecondsPer32Exp() public view 
+    returns (uint128 secondsPer32Exp) {
+        LibDiamond.enforceIsContractOwner();
         BqETHMetrics storage bms = bqethMetrics();
         return bms.secondsPer32Exp;
     }
