@@ -331,7 +331,7 @@ contract BqETHPublish is ReentrancyGuard {
 
 
     // Inspired from claimPuzzleReward
-    function cancelEverything() public payable onlyContractCustomer(msg.sender) returns (uint256) {
+    function cancelEverything() public payable onlyContractCustomer(msg.sender) {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
 
         // Now take care of wiping out secrets so they are undecryptable forever
