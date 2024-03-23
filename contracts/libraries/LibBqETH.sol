@@ -193,6 +193,12 @@ library LibBqETH {
     {
         // This is now always the first puzzle of a chain as long as the chain is active
         BqETHStorage storage bs = bqethStorage();
+        // If the user has cancelled their hourglass, the active chain will still be valid for a while until
+        // their last puzzle is solved and claimed
+        // We're going to check that the policy mkh is bogus, to see whether we should return anything
+        if (bs.activePolicies[_user].mkh == keccak256(abi.encodePacked(Y3K))) {
+            require(false == true);
+        }
         uint256 ph = bs.activeChainHead[_user];
         require(ph != 0, "Puzzle not found.");
         return _getPuzzle(ph);
