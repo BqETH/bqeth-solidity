@@ -285,7 +285,6 @@ contract BqETHPublish is ReentrancyGuard {
     function pruneChains(address _creator) internal returns (uint128) {
 
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
-        ActivePolicy memory policy = bs.activePolicies[msg.sender];
         uint128 refund  = 0;
 
         // Traverse all the chains
@@ -302,7 +301,7 @@ contract BqETHPublish is ReentrancyGuard {
                 uint256 next_pid = bs.userPuzzles[pid_to_check].sdate;
 
                 if (last_active == 0  && 
-                    bs.userPuzzles[pid_to_check].x.length == 0) {
+                    bs.userPuzzles[pid_to_check].x.length != 0) {
                     // We just found the first unsolved puzzle
                     last_active = pid_to_check;
                 }
@@ -312,9 +311,8 @@ contract BqETHPublish is ReentrancyGuard {
                     refund += bs.userPuzzles[pid_to_check].reward;
                     // Let the farmers know
                     emit LibBqETH.PuzzleInactive(
-                        pid_to_check, // Puzzle Hash
-                        policy.ritualId, // The ritual Id key
-                        "","","",
+                        pid_to_check,
+                        "","Pruned","","",
                         bs.userPuzzles[pid_to_check].sdate
                     );
                     // Delete it
@@ -344,7 +342,6 @@ contract BqETHPublish is ReentrancyGuard {
         // collect all puzzle times from the active puzzle down to the end of the chain
         uint256 pid_to_check = bs.activeChainHead[msg.sender];
         while (pid_to_check > Y3K) {
-            // Clear puzzle chain
             uint256 next_pid = bs.userPuzzles[pid_to_check].sdate;
             if (bs.userPuzzles[pid_to_check].x.length != 0) {
                 times[index] = bs.userPuzzles[pid_to_check].t;
