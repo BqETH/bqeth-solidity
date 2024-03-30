@@ -30,8 +30,9 @@ struct ActivePolicy {
     bytes32 mtroot; // The Merkle Tree Root for verification
     string encryptedPayload;  // The encrypted secret
     string encryptedDelivery; // The encrypted delivery
-    string condition; // The encrypted delivery
-    string ritualId;
+    string condition;   // The encrypted delivery
+    string ritualId;    // The Threshold Ritual ID
+    bytes32 kwh;        // Hash of the search keywords
     bool whistleBlower;
 }
 

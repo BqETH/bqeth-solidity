@@ -18,7 +18,8 @@ contract BqETHDecrypt is ReentrancyGuard {
     event decryptionRewardClaimed(
         uint256 pid,
         address creator,
-        string decryptedMessage
+        string decryptedMessage,
+        string keywords
     );
 
     function claimDecryption(
@@ -61,7 +62,8 @@ contract BqETHDecrypt is ReentrancyGuard {
     // Verifier: Check that H1=Hash(S1), X2=Hash(Salt+S1), and H3=Hash(X2+H1)
     function claimDecryptionReward(
         uint256 _pid,
-        string memory _decryptedMessage
+        string memory _decryptedMessage,
+        string memory _keywords
     ) public onlyValidFarmer nonReentrant returns (uint256) {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         // Force execution of claimPuzzle and claimReward to happen in different blocks
@@ -90,6 +92,13 @@ contract BqETHDecrypt is ReentrancyGuard {
                 sha256(abi.encodePacked(x2, h1)) == policy.mkh,
                 "Decrypted data must match commitment."
             );
+            // Re-using these because optimizer is stupid
+            h1 = sha256(abi.encodePacked(_keywords));
+            x2 = sha256(abi.encodePacked(salt, _keywords));
+            require(
+                sha256(abi.encodePacked(x2, h1)) == policy.kwh,
+                "Decrypted keywords must match commitment."
+            );
 
             // Pay the decryptor his reward
             uint256 amount = bs.escrow_balances[puzzle.creator];
@@ -102,7 +111,8 @@ contract BqETHDecrypt is ReentrancyGuard {
             emit decryptionRewardClaimed(
                 _pid,
                 puzzle.creator,
-                _decryptedMessage
+                _decryptedMessage,
+                _keywords 
             );
 
             delete bs.escrow_balances[puzzle.creator];
@@ -123,7 +133,8 @@ contract BqETHDecrypt is ReentrancyGuard {
         bytes32[] memory proof,
         bool[] memory proofPaths,   // whether to hash as right or left node
         bytes32 leaf,
-        string memory newcid
+        string memory newcid,
+        string memory _keywords
     ) public onlyValidFarmer nonReentrant returns (uint256) {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         // Force execution of claimPuzzle and claimReward to happen in different blocks
@@ -153,14 +164,24 @@ contract BqETHDecrypt is ReentrancyGuard {
 
             bytes32 h1 = sha256(abi.encodePacked(leaf));
             bytes32 x2 = sha256(abi.encodePacked(salt, leaf));
-
             require(
                 sha256(abi.encodePacked(x2, h1)) == policy.mkh,
                 "Decrypted data must match commitment."
             );
+            // Re-using these because optimizer is stupid
+            h1 = sha256(abi.encodePacked(_keywords));
+            x2 = sha256(abi.encodePacked(salt, _keywords));
+            require(
+                sha256(abi.encodePacked(x2, h1)) == policy.kwh,
+                "Decrypted keywords must match commitment."
+            );
 
             // We should also verify the new CID using verifyIPFS library
-            emit decryptionRewardClaimed(_pid, puzzle.creator, newcid);
+            emit decryptionRewardClaimed(_pid, 
+                puzzle.creator, 
+                newcid, 
+                _keywords 
+            );
 
             // Pay the decryptor his reward
             uint256 amount = bs.escrow_balances[puzzle.creator];

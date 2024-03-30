@@ -27,6 +27,7 @@ struct PayloadData {
     string condition;   // Maybe remove this ?
     bytes32 mkh;
     bytes32 mtroot;
+    bytes32 kwh;
 }
 
 struct BqETHData {
@@ -166,6 +167,7 @@ contract BqETHPublish is ReentrancyGuard {
             _payload.encryptedDelivery,
             _payload.condition,
             _policy.ritualId,
+            _payload.kwh,
             _policy.whistleBlower
         );
 
@@ -245,7 +247,7 @@ contract BqETHPublish is ReentrancyGuard {
 
         // Whistleblower mode refuses to change messageKit
         if (!policy.whistleBlower) {
-            // Only these 4 things change
+            // Only these 5 things change
             if (bytes(_payload.encryptedPayload).length > 0) {
                 policy.mkh = _payload.mkh;
                 policy.mtroot = _payload.mtroot;
@@ -255,6 +257,7 @@ contract BqETHPublish is ReentrancyGuard {
             if (bytes(_payload.encryptedDelivery).length > 0) {
                 policy.encryptedDelivery = _payload.encryptedDelivery;
             }
+            policy.kwh = _payload.kwh;
         }
     }
 
