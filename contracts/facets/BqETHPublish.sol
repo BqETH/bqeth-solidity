@@ -28,6 +28,7 @@ struct PayloadData {
     bytes32 mkh;
     bytes32 mtroot;
     bytes32 kwh;
+    bytes32 dkh;
 }
 
 struct BqETHData {
@@ -161,7 +162,8 @@ contract BqETHPublish is ReentrancyGuard {
         bs.activePolicies[msg.sender] = ActivePolicy(
             msg.sender,
             first_pid,
-            _payload.mkh,                   // Decryption reward gating
+            _payload.mkh,                   // Decryption gating payload
+            _payload.dkh,                   // Decryption gating delivery
             _payload.mtroot,
             _payload.encryptedPayload,
             _payload.encryptedDelivery,
@@ -255,6 +257,7 @@ contract BqETHPublish is ReentrancyGuard {
                 policy.condition = _payload.condition;
             }
             if (bytes(_payload.encryptedDelivery).length > 0) {
+                policy.dkh = _payload.dkh;
                 policy.encryptedDelivery = _payload.encryptedDelivery;
             }
             policy.kwh = _payload.kwh;
@@ -338,6 +341,7 @@ contract BqETHPublish is ReentrancyGuard {
         // Now take care of wiping out secrets so they are undecryptable forever
         // User will appear 'dead' but their payload will never be decryptable
         bs.activePolicies[msg.sender].mkh = keccak256(abi.encodePacked(Y3K));
+        bs.activePolicies[msg.sender].dkh = keccak256(abi.encodePacked(Y3K));
 
         // Memory arrays are not resizable, and we don't want this stuff in storage
         uint128[] memory times = new uint128[](32);

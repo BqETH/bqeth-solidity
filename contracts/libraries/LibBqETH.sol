@@ -24,10 +24,11 @@ struct Puzzle {
 }
 
 struct ActivePolicy {
-    address creator; // The user who registered the puzzle
-    uint256 pid; // The puzzle id which issued the policy
-    bytes32 mkh; // Decrypted message hash of hashes
-    bytes32 mtroot; // The Merkle Tree Root for verification
+    address creator;    // The user who registered the puzzle
+    uint256 pid;        // The puzzle id which issued the policy
+    bytes32 mkh;        // Decrypted message hash of hashes
+    bytes32 dkh;        // Delivery kit hash of hashes
+    bytes32 mtroot;     // The Merkle Tree Root for verification
     string encryptedPayload;  // The encrypted secret
     string encryptedDelivery; // The encrypted delivery
     string condition;   // The encrypted delivery

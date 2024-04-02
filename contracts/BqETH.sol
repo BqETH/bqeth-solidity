@@ -90,7 +90,7 @@ contract BqETH is ReentrancyGuard {
     /// @notice Returns 0 is the user has an active puzzle
     /// @notice Otherwise returns non-zero hash matching contition of the decryptable secret
     /// @param  user address The user address
-    function hasNoActivePuzzle(address user)
+    function hasNoActivePuzzleForPayload(address user)
         public view returns (bytes32 hash)
     {
         // This is now always the first puzzle of a chain as long as the chain is active
@@ -104,9 +104,28 @@ contract BqETH is ReentrancyGuard {
         }
     }
 
+    /// @notice Performs a check that the User has No active Puzzle
+    /// @notice Returns 0 is the user has an active puzzle
+    /// @notice Otherwise returns non-zero hash matching contition of the decryptable secret
+    /// @param  user address The user address
+    function hasNoActivePuzzleForDelivery(address user)
+        public view returns (bytes32 hash)
+    {
+        // This is now always the first puzzle of a chain as long as the chain is active
+        LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
+        uint256 ph = bs.activeChainHead[user];
+        ActivePolicy memory policy = bs.activePolicies[user];
+        if (ph != 0)
+            return 0;           // Return False, address has an active puzzle
+        else {
+            return policy.dkh;  // Return True, address has NO active puzzle
+        }
+    }
+
     function getActivePolicy(address _user) public view returns (
         string memory ritualId,
-        bytes32 mkh)
+        bytes32 mkh,
+        bytes32 dkh)
     {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         // Look up the active policy object and just change the treasuremap
@@ -114,7 +133,8 @@ contract BqETH is ReentrancyGuard {
 
         return (
             policy.ritualId,
-            policy.mkh
+            policy.mkh,
+            policy.dkh
         );
     }
 

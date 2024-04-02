@@ -199,7 +199,10 @@ contract BqETHSolve is ReentrancyGuard {
 
         // If the user has no remaining chain and his policy is marked as cancelled
         if (bs.userChains[puzzle.creator].chains.length == 0 &&
-            bs.activePolicies[puzzle.creator].mkh == 0) {
+            (bs.activePolicies[puzzle.creator].mkh == 0 ||
+             bs.activePolicies[puzzle.creator].mkh == keccak256(abi.encodePacked(Y3K))
+            )
+            ) {
             // Send remaining decryption escrow funds to BqETH
             address owner = LibDiamond.contractOwner();
             (bool success, ) = owner.call{value: bs.escrow_balances[puzzle.creator]}("");
