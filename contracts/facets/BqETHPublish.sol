@@ -24,7 +24,6 @@ struct PolicyData {
 struct PayloadData {
     string encryptedPayload;
     string encryptedDelivery;
-    string condition;   // Maybe remove this ?
     bytes32 mkh;
     bytes32 mtroot;
     bytes32 kwh;
@@ -167,7 +166,6 @@ contract BqETHPublish is ReentrancyGuard {
             _payload.mtroot,
             _payload.encryptedPayload,
             _payload.encryptedDelivery,
-            _payload.condition,
             _policy.ritualId,
             _payload.kwh,
             _policy.whistleBlower
@@ -254,7 +252,6 @@ contract BqETHPublish is ReentrancyGuard {
                 policy.mkh = _payload.mkh;
                 policy.mtroot = _payload.mtroot;
                 policy.encryptedPayload = _payload.encryptedPayload;
-                policy.condition = _payload.condition;
             }
             if (bytes(_payload.encryptedDelivery).length > 0) {
                 policy.dkh = _payload.dkh;
