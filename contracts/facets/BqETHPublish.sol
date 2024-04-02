@@ -252,12 +252,12 @@ contract BqETHPublish is ReentrancyGuard {
                 policy.mkh = _payload.mkh;
                 policy.mtroot = _payload.mtroot;
                 policy.encryptedPayload = _payload.encryptedPayload;
+                policy.kwh = _payload.kwh;
             }
             if (bytes(_payload.encryptedDelivery).length > 0) {
                 policy.dkh = _payload.dkh;
                 policy.encryptedDelivery = _payload.encryptedDelivery;
             }
-            policy.kwh = _payload.kwh;
         }
     }
 
