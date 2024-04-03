@@ -31,8 +31,7 @@ struct PayloadData {
 }
 
 struct BqETHData {
-    uint64 passThrough;   // Pre-paid subscription amount
-    uint64 services;      // Services selection
+    uint128 passThrough;   // Pre-paid subscription amount
     uint64 servicesAmt;   // Services escrow
     string notifications; // BqETH encrypted Notification payload
 }
