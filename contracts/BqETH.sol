@@ -12,7 +12,6 @@ import { LibDiamond } from "hardhat-deploy/solc_0.8/diamond/libraries/LibDiamond
 
 /// @title BqETH Contract
 contract BqETH is ReentrancyGuard {
-    address owner;
 
     constructor() {
         console.log("Deploying BqETH Contract with version:", LibBqETH.version);
@@ -51,14 +50,14 @@ contract BqETH is ReentrancyGuard {
         public
         view
         returns (
-            uint256 pid, // The puzzle key
-            address creator, // The puzzle creator
-            bytes memory N, // The modulus
-            bytes memory x, // The start value
-            uint256 t, // The time parameter
-            bytes32 h3, // H3 Hash value of the solution
-            uint256 reward, // The amount that should be dispensed
-            uint256 sdate
+            uint256 pid,        // The puzzle key
+            address creator,    // The puzzle creator
+            bytes memory N,     // The modulus
+            bytes memory x,     // The start value
+            uint256 t,          // The time parameter
+            bytes32 h3,         // H3 Hash value of the solution
+            uint256 reward,     // The amount that should be dispensed
+            uint256 sdate       // Start Date - Next Pid
         )
     {
         // This is now always the first puzzle of a chain as long as the chain is active

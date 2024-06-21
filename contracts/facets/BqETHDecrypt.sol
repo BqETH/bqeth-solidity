@@ -176,7 +176,7 @@ contract BqETHDecrypt is ReentrancyGuard {
                 "Decrypted keywords must match commitment."
             );
 
-            // We should also verify the new CID using verifyIPFS library
+            // AUDIT: We should also verify the new CID using verifyIPFS library
             emit decryptionRewardClaimed(_pid, 
                 puzzle.creator, 
                 newcid, 

@@ -78,6 +78,7 @@ contract BqETHPublish is ReentrancyGuard {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         uint256 reward_total = 0;
         uint256 first_pid = 0;
+        require(_c.length < 33, "Chain too long.");
 
         for (uint256 i = 0; i < _c.length; i++) {
             uint256 ph = puzzleKey(_N, _c[i].x, _c[i].t);
@@ -106,17 +107,16 @@ contract BqETHPublish is ReentrancyGuard {
                 first_pid = ph;
             }
 
-            // msg.value better be more than the sum of puzzle chain rewards
-            require(msg.value >= reward_total, "Insufficient value provided.");
-
-            console.log(
-                "Registered puzzle with Hash :'%s'",
-                LibBqETH.toHexString(ph),
-                "For user", msg.sender
-            );
+            // console.log(
+            //     "Registered puzzle with Hash :'%s'",
+            //     LibBqETH.toHexString(ph),
+            //     "For user", msg.sender
+            // );
             // Send the Event
             emit NewPuzzleRegistered(msg.sender, ph, (i == 0) ? true : false); // First puzzle in a chain is read-to-work
         }
+        // msg.value better be more than the sum of puzzle chain rewards
+        require(msg.value >= reward_total, "Insufficient value provided.");
 
         // Record a new chain
         Chain memory chain = Chain(first_pid, _N);
@@ -155,7 +155,8 @@ contract BqETHPublish is ReentrancyGuard {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         uint256 first_pid = recordPuzzles(_N, _c, _sdate);
         bs.escrow_balances[msg.sender] = msg.value - _bqethData.passThrough;
-        // console.log("Account Escrow balance:", escrow_balances[msg.sender]);
+        // AUDIT: Can't prevent being called by a contract constructor
+        require(msg.sender != address(0), "No calls from other contracts"); 
 
         bs.activePolicies[msg.sender] = ActivePolicy(
             msg.sender,
@@ -217,6 +218,9 @@ contract BqETHPublish is ReentrancyGuard {
         uint128 refund = pruneChains(msg.sender);
         if (refund > 0) {
             (bool success, ) = msg.sender.call{value: refund}("");
+            // AUDIT: If called by a contract this can prevent the cleanup that happens as part of the Tx
+            // and could cause bloat in the contract. Investigate if other contracts could submit worthless puzzles
+            // and intentionally refuse the transfer of funds. 
             require(success, "Refund failed.");
         }
 

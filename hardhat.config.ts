@@ -79,6 +79,17 @@ const config: HardhatUserConfig = {
           ? [process.env.TEST_ETH_ACCOUNT_PRIVATE_KEY]
           : []
     },
+    amoy: {
+      chainId: 80002,
+      live: true,
+      saveDeployments: true,
+      deploy: [ 'deploy/' ],
+      url: `https://polygon-amoy.infura.io/v3/${process.env.INFURA_ID}` || '',
+      accounts:
+        process.env.TEST_ETH_ACCOUNT_PRIVATE_KEY !== undefined
+          ? [process.env.TEST_ETH_ACCOUNT_PRIVATE_KEY]
+          : []
+    },
   },
   typechain: {
     outDir: 'types',

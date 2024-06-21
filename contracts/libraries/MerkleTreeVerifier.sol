@@ -2,8 +2,8 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 // From https://github.com/liamzebedee/typescript-solidity-merkle-tree
-// I had to make it an abstract contract and change the pragma because the original library
-// could be installed but pins the solidity version to 0.5.0 
+// I had to make it an abstract contract and change the pragma because the 
+// original library could be installed but pins the solidity version to 0.5.0 
 // and hasn't been modified in 5 years.
 
 /**
@@ -12,8 +12,8 @@ pragma solidity >=0.8.0 <0.9.0;
 library MerkleTreeVerifier {
 
     /**
-     * @dev Verifies a Merkle proof proving the existence of a leaf in a Merkle tree. Assumes that each pair of leaves
-     * and each pair of pre-images are sorted.
+     * @dev Verifies a Merkle proof proving the existence of a leaf in a Merkle tree. 
+     * Assumes that each pair of leaves and each pair of pre-images are sorted.
      * @param proof Merkle proof containing sibling hashes on the branch from the leaf to the root of the Merkle tree
      * @param root Merkle root
      * @param leaf Leaf of Merkle tree
@@ -32,7 +32,7 @@ library MerkleTreeVerifier {
         bytes32[] memory proof,
         bool[] memory paths,
         bytes32 leaf
-    ) public pure returns (bytes32) {
+    ) private pure returns (bytes32) {
         bytes32 node = leaf;
 
         for (uint256 i = 0; i < proof.length; i++) {
@@ -50,7 +50,7 @@ library MerkleTreeVerifier {
         return node;
     }
 
-    function _hashLeaf(bytes32 leaf) public pure returns (bytes32) {
+    function _hashLeaf(bytes32 leaf) private pure returns (bytes32) {
         bytes1 LEAF_PREFIX = 0x00;
         return keccak256(abi.encodePacked(LEAF_PREFIX, leaf));
     }
@@ -58,7 +58,7 @@ library MerkleTreeVerifier {
     function _hashBranch(
         bytes32 left,
         bytes32 right
-    ) public pure returns (bytes32) {
+    ) private pure returns (bytes32) {
         bytes1 BRANCH_PREFIX = 0x01;
         return keccak256(abi.encodePacked(BRANCH_PREFIX, left, right));
     }

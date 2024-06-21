@@ -22,22 +22,6 @@ library BigNumbers {
     bytes constant  TWO = hex"0000000000000000000000000000000000000000000000000000000000000002";
 
     // ***************** BEGIN EXPOSED MANAGEMENT FUNCTIONS ******************
-    /** @notice verify a BN instance
-     *  @dev checks if the BN is in the correct format. operations should only be carried out on
-     *       verified BNs, so it is necessary to call this if your function takes an arbitrary BN
-     *       as input.
-     *
-     *  @param bn BigNumber instance
-     */
-    // function verify(
-    //     BigNumber memory bn
-    // ) internal pure {
-    //     uint msword; 
-    //     bytes memory val = bn.val;
-    //     assembly {msword := mload(add(val,0x20))} //get msword of result
-    //     if(msword==0) require(isZero(bn),"Should be Zero");
-    //     else require((bn.val.length % 32 == 0) && (msword>>((bn.bitlen%256)-1)==1), "Length Check");
-    // }
 
     /** @notice initialize a BN instance
      *  @dev wrapper function for _init. initializes from bytes value.
@@ -85,28 +69,6 @@ library BigNumbers {
     ) internal view returns(BigNumber memory){
         return _init(abi.encodePacked(val), neg, 0);
     }
-
-    // This trim function removes leading zeros don't contain information in our big endian format.
-    // function trim(bytes memory data) internal pure returns(bytes memory) {
-    //     uint256 msb = 0;
-    //     while (data[msb] == 0) {
-    //         msb ++;
-    //         if (msb == data.length) {
-    //             return hex"";
-    //         }
-    //     }
-        
-    //     if (msb > 0) {
-    //         // We don't want to copy data around, so we do the following assembly manipulation:
-    //         // Move the data pointer forward by msb, then store in the length slot (current length - msb)
-    //         assembly {
-    //             let current_len := mload(data)
-    //             data := add(data, msb)
-    //             mstore(data, sub(current_len, msb))
-    //         }
-    //     }
-    //     return data;
-    // }
 
     // This is added by BqETH, didn't exist in the original library
     // function toBytes(BigNumber memory n) public pure returns(bytes memory r){ 
@@ -252,85 +214,6 @@ library BigNumbers {
         }
     }
 
-    /** @notice BigNumber division verification: a * b.
-      * @dev div: takes three BigNumbers (a,b and result), and verifies that a/b == result.
-      * Performing BigNumber division on-chain is a significantly expensive operation. As a result, 
-      * we expose the ability to verify the result of a division operation, which is a constant time operation. 
-      *              (a/b = result) == (a = b * result)
-      *              Integer division only; therefore:
-      *                verify ((b*result) + (a % (b*result))) == a.
-      *              eg. 17/7 == 2:
-      *                verify  (7*2) + (17 % (7*2)) == 17.
-      * The function returns a bool on successful verification. The require statements will ensure that false can never
-      *  be returned, however inheriting contracts may also want to put this function inside a require statement.
-      *  
-      * @param a first BigNumber
-      * @param b second BigNumber
-      * @param r result BigNumber
-      * @return bool whether or not the operation was verified
-      */
-    // function divVerify(
-    //     BigNumber memory a, 
-    //     BigNumber memory b, 
-    //     BigNumber memory r
-    // ) internal view returns(bool) {
-
-    //     // first do zero check.
-    //     // if a<b (always zero) and r==zero (input check), return true.
-    //     if(cmp(a, b, false) == -1){
-    //         require(cmp(zero(), r, false)==0, "BN0");
-    //         return true;
-    //     }
-
-    //     // Following zero check:
-    //     //if both negative: result positive
-    //     //if one negative: result negative
-    //     //if neither negative: result positive
-    //     bool positiveResult = ( a.neg && b.neg ) || (!a.neg && !b.neg);
-    //     require(positiveResult ? !r.neg : r.neg, "BN1");
-        
-    //     // require denominator to not be zero.
-    //     require(!(cmp(b,zero(),true)==0), "BN2");
-        
-    //     // division result check assumes inputs are positive.
-    //     // we have already checked for result sign so this is safe.
-    //     bool[3] memory negs = [a.neg, b.neg, r.neg];
-    //     a.neg = false;
-    //     b.neg = false;
-    //     r.neg = false;
-
-    //     // do multiplication (b * r)
-    //     BigNumber memory fst = mul(b,r);
-    //     // check if we already have 'a' (ie. no remainder after division). if so, no mod necessary, and return true.
-    //     if(cmp(fst,a,true)==0) return true;
-    //     //a mod (b*r)
-    //     BigNumber memory snd = modexp(a,one(),fst); 
-    //     // ((b*r) + a % (b*r)) == a
-    //     require(cmp(add(fst,snd),a,true)==0, "BN3"); 
-
-    //     a.neg = negs[0];
-    //     b.neg = negs[1];
-    //     r.neg = negs[2];
-
-    //     return true;
-    // }
-
-    /** @notice BigNumber exponentiation: a ^ b.
-      * @dev pow: takes a BigNumber and a uint (a,e), and calculates a^e.
-      * modexp precompile is used to achieve a^e; for this is work, we need to work out the minimum modulus value 
-      * such that the modulus passed to modexp is not used. the result of a^e can never be more than size bitlen(a) * e.
-      * 
-      * @param a BigNumber
-      * @param e exponent
-      * @return r result BigNumber
-      */
-    // function pow(
-    //     BigNumber memory a, 
-    //     uint e
-    // ) internal view returns(BigNumber memory){
-    //     return modexp(a, init(e, false), _powModulus(a, e));
-    // }
-
     /** @notice BigNumber modulus: a % n.
       * @dev mod: takes a BigNumber and modulus BigNumber (a,n), and calculates a % n.
       * modexp precompile is used to achieve a % n; an exponent of value '1' is passed.
@@ -377,46 +260,6 @@ library BigNumbers {
         // in any other case we return the positive result.
         return BigNumber(_result, false, bitlen);
     }
-
-    /** @notice BigNumber modular exponentiation with negative base: inv(a)==a_inv && a_inv^e mod n.
-    /** @dev modexp: takes base, base inverse, exponent, and modulus, asserts inverse(base)==base inverse, 
-      *              internally computes base_inverse^exponent % modulus and creates new BigNumber.
-      *              this function is overloaded: it assumes the exponent is negative. 
-      *              if not, the other method is used, where the inverse of the base is not passed.
-      *
-      * @param a base BigNumber
-      * @param ai base inverse BigNumber
-      * @param e exponent BigNumber
-      * @param a modulus
-      * @return BigNumber memory result.
-      */ 
-    // function modexp(
-    //     BigNumber memory a, 
-    //     BigNumber memory ai, 
-    //     BigNumber memory e, 
-    //     BigNumber memory n) 
-    // internal view returns(BigNumber memory) {
-    //     // base^-exp = (base^-1)^exp
-    //     require(!a.neg && e.neg);
-
-    //     //if modulus is negative or zero, we cannot perform the operation.
-    //     require(!n.neg && !isZero(n.val), "BN5");
-
-    //     //base_inverse == inverse(base, modulus)
-    //     require(modinvVerify(a, n, ai), "BN6"); 
-            
-    //     bytes memory _result = _modexp(ai.val,e.val,n.val);
-    //     //get bitlen of result (TODO: optimise. we know bitlen is in the same byte as the modulus bitlen byte)
-    //     uint bitlen = bitLength(_result);
-
-    //     // if result is 0, immediately return.
-    //     if(bitlen == 0) return zero();
-    //     // if base_inverse is negative AND exponent is odd, base_inverse^exp is negative, and tf. result is negative;
-    //     // in that case we make the result positive by adding the modulus.
-    //     if(ai.neg && isOdd(e)) return add(BigNumber(_result, true, bitlen), n);
-    //     // in any other case we return the positive result.
-    //     return BigNumber(_result, false, bitlen);
-    // }
  
     /** @notice modular multiplication: (a*b) % n.
       * @dev modmul: Takes BigNumbers for a, b, and modulus, and computes (a*b) % modulus
@@ -434,36 +277,6 @@ library BigNumbers {
         BigNumber memory n) internal view returns(BigNumber memory) {       
         return mod(mul(a,b), n);       
     }
-
-    /** @notice modular inverse verification: Verifies that (a*r) % n == 1.
-      * @dev modinvVerify: Takes BigNumbers for base, modulus, and result, verifies (base*result)%modulus==1, and returns result.
-      *              Similar to division, it's far cheaper to verify an inverse operation on-chain than it is to calculate it, so we allow the user to pass their own result.
-      *
-      * @param a base BigNumber
-      * @param n modulus BigNumber
-      * @param r result BigNumber
-      * @return boolean result
-      */
-    // function modinvVerify(
-    //     BigNumber memory a, 
-    //     BigNumber memory n, 
-    //     BigNumber memory r
-    // ) internal view returns(bool) {
-    //     require(!a.neg && !n.neg, "BN7"); //assert positivity of inputs.
-    //     /*
-    //      * the following proves:
-    //      * - user result passed is correct for values base and modulus
-    //      * - modular inverse exists for values base and modulus.
-    //      * otherwise it fails.
-    //      */        
-    //     require(cmp(modmul(a, r, n),one(),true)==0, "BN8");
-        
-    //     return true;
-    // }
-    // ***************** END EXPOSED CORE CALCULATION FUNCTIONS ******************
-
-
-
 
     // ***************** START EXPOSED HELPER FUNCTIONS ******************
     /** @notice BigNumber odd number check
@@ -550,81 +363,6 @@ library BigNumbers {
         return (result==0) ? true : false;
     }
 
-    /** @notice BigNumber greater than
-      * @dev eq: returns true if a>b. sign always considered.
-      *           
-      * @param a BigNumber
-      * @param b BigNumber
-      * @return boolean result
-      */
-    // function gt(
-    //     BigNumber memory a, 
-    //     BigNumber memory b
-    // ) internal pure returns(bool){
-    //     int result = cmp(a, b, true);
-    //     return (result==1) ? true : false;
-    // }
-
-    /** @notice BigNumber greater than or equal to
-      * @dev eq: returns true if a>=b. sign always considered.
-      *           
-      * @param a BigNumber
-      * @param b BigNumber
-      * @return boolean result
-      */
-    // function gte(
-    //     BigNumber memory a, 
-    //     BigNumber memory b
-    // ) internal pure returns(bool){
-    //     int result = cmp(a, b, true);
-    //     return (result==1 || result==0) ? true : false;
-    // }
-
-    /** @notice BigNumber less than
-      * @dev eq: returns true if a<b. sign always considered.
-      *           
-      * @param a BigNumber
-      * @param b BigNumber
-      * @return boolean result
-      */
-    // function lt(
-    //     BigNumber memory a, 
-    //     BigNumber memory b
-    // ) internal pure returns(bool){
-    //     int result = cmp(a, b, true);
-    //     return (result==-1) ? true : false;
-    // }
-
-    /** @notice BigNumber less than or equal o
-      * @dev eq: returns true if a<=b. sign always considered.
-      *           
-      * @param a BigNumber
-      * @param b BigNumber
-      * @return boolean result
-      */
-    // function lte(
-    //     BigNumber memory a, 
-    //     BigNumber memory b
-    // ) internal pure returns(bool){
-    //     int result = cmp(a, b, true);
-    //     return (result==-1 || result==0) ? true : false;
-    // }
-
-    /** @notice right shift BigNumber value
-      * @dev shr: right shift BigNumber a by 'bits' bits.
-             copies input value to new memory location before shift and calls _shr function after. 
-      * @param a BigNumber value to shift
-      * @param bits amount of bits to shift by
-      * @return result BigNumber
-      */
-    // function shr(
-    //     BigNumber memory a, 
-    //     uint bits
-    // ) internal view returns(BigNumber memory){
-    //     require(!a.neg, "BN9");
-    //     return _shr(a, bits);
-    // }
-
     /** @notice right shift BigNumber memory 'dividend' by 'bits' bits.
       * @dev _shr: Shifts input value in-place, ie. does not create new memory. shr function does this.
       * right shift does not necessarily have to copy into a new memory location. where the user wishes the modify
@@ -649,6 +387,9 @@ library BigNumbers {
         // we also update 'bits' so that it is now in the range 0..256.
         assembly {
             if or(gt(bits, 0x100), eq(bits, 0x100)) {
+                // AUDIT: BigNumbers._shr(BigNumber,uint256) (contracts/libraries/BigNumbers.sol#374-440) performs a multiplication on the result of a division:
+	            // - length = length - bits / 0x100 * 0x20 (contracts/libraries/BigNumbers.sol#390)
+                // Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#divide-before-multiply
                 length := sub(length, mul(div(bits, 0x100), 0x20))
                 mstore(mload(bn), length)
                 bits := mod(bits, 0x100)
@@ -716,35 +457,6 @@ library BigNumbers {
         return _shl(a, bits);
     }
 
-    /** @notice sha3 hash a BigNumber.
-      * @dev hash: takes a BigNumber and performs sha3 hash on it.
-      *            we hash each BigNumber WITHOUT it's first word - first word is a pointer to the start of the bytes value,
-      *            and so is different for each struct.
-      *             
-      * @param a BigNumber
-      * @return h bytes32 hash.
-      */
-    // function hash(
-    //     BigNumber memory a
-    // ) internal pure returns(bytes32 h) {
-    //     //amount of words to hash = all words of the value and three extra words: neg, bitlen & value length.     
-    //     assembly {
-    //         h := keccak256( add(a,0x20), add (mload(mload(a)), 0x60 ) ) 
-    //     }
-    // }
-
-    /** @notice BigNumber full zero check
-      * @dev isZero: checks if the BigNumber is in the default zero format for BNs (ie. the result from zero()).
-      *             
-      * @param a BigNumber
-      * @return boolean result.
-      */
-    // function isZero(
-    //     BigNumber memory a
-    // ) internal pure returns(bool) {
-    //     return isZero(a.val) && a.val.length==0x20 && !a.neg && a.bitlen == 0;
-    // }
-
 
     /** @notice bytes zero check
       * @dev isZero: checks if input bytes value resolves to zero.
@@ -768,18 +480,6 @@ library BigNumbers {
         return true;
 
     }
-
-    /** @notice BigNumber value bit length
-      * @dev bitLength: returns BigNumber value bit length- ie. log2 (most significant bit of value)
-      *             
-      * @param a BigNumber
-      * @return uint bit length result.
-      */
-    // function bitLength(
-    //     BigNumber memory a
-    // ) internal pure returns(uint){
-    //     return bitLength(a.val);
-    // }
 
     /** @notice bytes bit length
       * @dev bitLength: returns bytes bit length- ie. log2 (most significant bit of value)
@@ -1152,6 +852,9 @@ library BigNumbers {
         bytes memory _modulus = ZERO;
         uint mod_index;
 
+        // AUDIT: BigNumbers._powModulus(BigNumber,uint256) (contracts/libraries/BigNumbers.sol#845-863) 
+        //     contains an incorrect shift operation: first_word_modulus__powModulus_asm_0 = 1 << mod_index % 256 (contracts/libraries/BigNumbers.sol#854)
+        // Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#incorrect-shift-in-assembly
         assembly {
             mod_index := mul(mload(add(a, 0x40)), e)               // a.bitlen * e is the max bitlength of result
             let first_word_modulus := shl(mod(mod_index, 256), 1)  // set bit in first modulus word.

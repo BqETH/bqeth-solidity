@@ -114,7 +114,9 @@ library LibBqETH {
         address _creator
     ) internal view returns (Chain memory) {
         BqETHStorage storage bs = bqethStorage();
-        Chain memory chain;
+        // AUDIT LibBqETH._findPuzzleChain(uint256,address).chain (contracts/libraries/LibBqETH.sol#117) is a local variable never initialized
+        // Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#uninitialized-local-variables
+        Chain memory chain; // Not always initialized
         bool found = false;
         // We must first find the chain for this puzzle
         Chain[] memory mychains = bs.userChains[_creator].chains;
@@ -198,10 +200,14 @@ library LibBqETH {
         // their last puzzle is solved and claimed
         // We're going to check that the policy mkh is bogus, to see whether we should return anything
         if (bs.activePolicies[_user].mkh == keccak256(abi.encodePacked(Y3K))) {
-            require(false == true);
+            revert("Cancelled puzzle.");
         }
         uint256 ph = bs.activeChainHead[_user];
-        require(ph != 0, "Puzzle not found.");
+        if (ph == 0) {
+            bytes memory nullbytes = new bytes(0);
+            uint256 nullint = 0;
+            return (nullint,address(0), nullbytes,nullbytes,nullint,bytes32(0),nullint,0);
+        }
         return _getPuzzle(ph);
     }
 

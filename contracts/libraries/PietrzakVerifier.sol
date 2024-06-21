@@ -8,7 +8,7 @@ library PietrzakVerifier {
         BigNumber memory _x,
         BigNumber memory _y,
         BigNumber memory _u
-    ) public pure returns (uint8) {
+    ) internal pure returns (uint8) {
         // Farmers use sha256 (Sha-2) and so do we
         // And they use the proper big endian byte configuration of the integers
         // s = (x.to_bytes(int_size, "big", signed=False) + y.to_bytes(int_size, "big", signed=False) + μ.to_bytes(int_size, "big", signed=False))
@@ -23,7 +23,8 @@ library PietrzakVerifier {
     }
 
     // This is called externally by modules that don't know
-    // anything about the BigNumber data type, and therefore pass large integers as bytes
+    // anything about the BigNumber data type, and therefore 
+    // pass large integers as bytes
     function verifyProof(
         bytes memory N,
         bytes memory xi,
@@ -60,22 +61,25 @@ library PietrzakVerifier {
         BigNumber memory ui = p[index];
         BigNumber memory ri = BigNumbers.mod(
             BigNumbers.init(r_value(xi, yi, ui), false), N);
-        xi = BigNumbers.modmul(BigNumbers.modexp(xi, ri, N), ui, N);
-        yi = BigNumbers.modmul(BigNumbers.modexp(ui, ri, N), yi, N);
+
+        // AUDIT security/no-assign-params
+        BigNumber memory new_xi = BigNumbers.modmul(BigNumbers.modexp(xi, ri, N), ui, N);
+        BigNumber memory new_yi = BigNumbers.modmul(BigNumbers.modexp(ui, ri, N), yi, N);
 
         // Recursion
-        if (index + 1 != p.length)
-            return verifyProof(N, xi, d - 1, yi, index + 1, p);
-
-        // When there are no more entries in the proof
-
-        BigNumber memory bne = BigNumbers.shl(BigNumbers.one(), 2 ** d);
-        if (BigNumbers.eq(yi, BigNumbers.modexp(xi, bne, N))) {
-            // console.log("Proof is Valid");
-            return true;
-        } else {
-            // console.log("Proof is invalid");
-            return false;
+        if (index + 1 != p.length) {
+            return verifyProof(N, new_xi, d - 1, new_yi, index + 1, p);
+        }
+        else {
+            // When there are no more entries in the proof
+            if (BigNumbers.eq(new_yi, 
+                BigNumbers.modexp(new_xi, BigNumbers.shl(BigNumbers.one(), 2 ** d), N))) {
+                // console.log("Proof is Valid");
+                return true;
+            } else {
+                // console.log("Proof is invalid");
+                return false;
+            }
         }
     }
 }
