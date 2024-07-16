@@ -21,14 +21,13 @@ contract BqETH is ReentrancyGuard {
         return LibBqETH.version;
     }
 
-    // Some unique key for each puzzle  
     // Same function as in LbBqETH but avoids delegateCall
     function puzzleKey(
         bytes memory _N,
         bytes memory _x,
         uint256 _t
     ) public pure returns (uint256) {
-        return LibBqETH._puzzleKey(_N, _x, _t);
+        return LibBqETH.puzzleKey(_N, _x, _t);
     }
 
     function getActiveChain(
@@ -135,24 +134,6 @@ contract BqETH is ReentrancyGuard {
             policy.mkh,
             policy.dkh
         );
-    }
-
-    function setRewardPerDay(uint128 gweiPerDay) public {
-        LibDiamond.enforceIsContractOwner();
-        LibBqETH._setRewardPerDay(gweiPerDay);
-    }
-
-    function getRewardPerDay() public view returns (uint128 gweiPerDay) {
-        return LibBqETH._getRewardPerDay();
-    }
-
-    function setSecondsPer32Exp(uint128 secondsPer32Exp) public {
-        LibDiamond.enforceIsContractOwner();
-        LibBqETH._setSecondsPer32Exp(secondsPer32Exp);
-    }
-
-    function getSecondsPer32Exp() public view returns (uint128 secondsPer32Exp) {
-        return LibBqETH._getSecondsPer32Exp();
     }
 
     // To support receiving ETH by default

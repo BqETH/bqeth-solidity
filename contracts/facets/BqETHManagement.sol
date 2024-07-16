@@ -10,28 +10,42 @@ contract BqETHManagement is ReentrancyGuard {
     bytes32 immutable salt = "BqETH";
 
     // ================================================================================================================================================
-    // TODO: Remove this function. This is for testing purposes only. DO NOT RELEASE TO PRODUCTION
-    // function sweepFunds() public {
-    //     LibDiamond.enforceIsContractOwner();
-    //     require(address(this).balance >= 0, "Insufficient Funds.");
-    //     (bool success, ) = msg.sender.call{value: address(this).balance}("");
-    //     require(success, "Transfer failed.");
-    // }
+    // TODO: Remove this function, eventually, before throwing away the keys.
+    function sweepFunds() public {
+        LibDiamond.enforceIsContractOwner();
+        require(address(this).balance >= 0, "Insufficient Funds.");
+        address bqethsvc = LibBqETH._getBqETHServicesAddress();
+        // Contract Owner can Sweep funds to BqETH Services
+        (bool success, ) = bqethsvc.call{value: address(this).balance}("");
+        require(success, "Transfer failed.");
+    }
 
-    // // TODO Delete this function before releasing to Production
-    // function setMeDead(address _user) public {
-    //     LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
-    //     ActivePolicy storage policy = bs.activePolicies[_user];
-    //     emit PuzzleInactive(
-    //         0,                  // Puzzle Hash
-    //         policy.ritualId, // The verifying key
-    //         policy.encryptedPayload,  // The secret
-    //         policy.encryptedDelivery, // The delivery
-    //         "",
-    //         32400080000000
-    //     );
-    //     delete bs.activeChainHead[_user];
-    // }
+    function setRewardPerDay(uint128 gweiPerDay) public {
+        LibDiamond.enforceIsContractOwner();
+        LibBqETH._setRewardPerDay(gweiPerDay);
+    }
+
+    function getRewardPerDay() public view returns (uint128 gweiPerDay) {
+        return LibBqETH._getRewardPerDay();
+    }
+
+    function setSecondsPer32Exp(uint128 secondsPer32Exp) public {
+        LibDiamond.enforceIsContractOwner();
+        LibBqETH._setSecondsPer32Exp(secondsPer32Exp);
+    }
+
+    function getSecondsPer32Exp() public view returns (uint128 secondsPer32Exp) {
+        return LibBqETH._getSecondsPer32Exp();
+    }
+
+    function getBqETHServicesAddress() public view returns (address bqethServicesAddress) {
+        return LibBqETH._getBqETHServicesAddress();
+    }
+
+    function setBqETHServicesAddress(address bqethServicesAddress) public {
+        LibDiamond.enforceIsContractOwner();
+        LibBqETH._setBqETHServicesAddress(bqethServicesAddress);
+    }
 
 // AUDIT : Use a two-step
 // address change to _governance address separately using setter functions: 1)

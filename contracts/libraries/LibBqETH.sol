@@ -39,8 +39,18 @@ struct ActivePolicy {
 library LibBqETH {
     bytes32 constant BQETH_PUZZLES = keccak256("bqeth.puzzles.storage");  // Diamond storage
     bytes32 constant BQETH_METRICS = keccak256("bqeth.metrics.storage");  // Diamond storage
+    bytes32 constant BQETH_ADMIN   = keccak256("bqeth.admin.storage");    // Diamond storage
     string constant version = "BqETH Version 3.0";
 
+    event PuzzleInactive(
+        uint256 pid,
+        string ritualId,
+        string encryptedPayload,
+        string encryptedDelivery,
+        bytes solution,
+        uint256 sdate
+    );    
+    
     struct BqETHStorage {
         mapping(address => PuzzleChains) userChains;    // User -> Chains -> [(head,modulus)]
         mapping(uint256 => Puzzle) userPuzzles;         // Pid -> Puzzle
@@ -50,15 +60,6 @@ library LibBqETH {
         mapping(address => ActivePolicy) activePolicies; // User -> ActivePolicy
         mapping(address => uint256) activeChainHead;    // User -> Active chain head pid
     }
-
-    event PuzzleInactive(
-        uint256 pid,
-        string ritualId,
-        string encryptedPayload,
-        string encryptedDelivery,
-        bytes solution,
-        uint256 sdate
-    );
 
     function bqethStorage() public pure returns (BqETHStorage storage bds) {
         bytes32 position = BQETH_PUZZLES;
@@ -70,6 +71,17 @@ library LibBqETH {
     struct BqETHMetrics {
         uint128 gweiPerDay;                // Market Reward per Day in Gwei
         uint128 secondsPer32Exp;           // Best recorded speed for x^(2^32) in seconds
+    }
+
+    function bqethAdmin() public pure returns (BqETHAdmin storage bas) {
+        bytes32 position = BQETH_ADMIN;
+        assembly {
+            bas.slot := position
+        }
+    }
+
+    struct BqETHAdmin {
+        address bqethServices;                // Address for BqETH Services Pass-Through
     }
 
     function bqethMetrics() public pure returns (BqETHMetrics storage bms) {
@@ -101,11 +113,11 @@ library LibBqETH {
     }
 
     // Some unique key for each puzzle
-    function _puzzleKey(
+    function puzzleKey(
         bytes memory _N,
         bytes memory _x,
         uint256 _t
-    ) public pure returns (uint256) {
+    ) internal pure returns (uint256) {
         return uint256(keccak256(abi.encodePacked(_N, _x, _t)));
     }
 
@@ -246,27 +258,46 @@ library LibBqETH {
         );
     }
 
-    function _setRewardPerDay(uint128 gweiPerDay) public {
+    function _setRewardPerDay(uint128 gweiPerDay) internal {
         LibDiamond.enforceIsContractOwner();
         BqETHMetrics storage bms = bqethMetrics();
         bms.gweiPerDay = gweiPerDay;
     }
 
-    function _getRewardPerDay() public view 
+    function _getRewardPerDay() internal view 
     returns (uint128 gweiPerDay) {
         BqETHMetrics storage bms = bqethMetrics();
         return bms.gweiPerDay;
     }
 
-    function _setSecondsPer32Exp(uint128 secondsPer32Exp) public {
+    function _setSecondsPer32Exp(uint128 secondsPer32Exp) internal {
         LibDiamond.enforceIsContractOwner();
         BqETHMetrics storage bms = bqethMetrics();
         bms.secondsPer32Exp = secondsPer32Exp;
     }
 
-    function _getSecondsPer32Exp() public view 
+    function _getSecondsPer32Exp() internal view 
     returns (uint128 secondsPer32Exp) {
         BqETHMetrics storage bms = bqethMetrics();
         return bms.secondsPer32Exp;
+    }
+
+    function _setBqETHServicesAddress(address bqethSvc) internal {
+        LibDiamond.enforceIsContractOwner();
+        BqETHAdmin storage bas = bqethAdmin();
+        bas.bqethServices = bqethSvc;
+    }
+
+    function _getBqETHServicesAddress() internal view 
+    returns (address bqethServices) {
+        BqETHAdmin storage bas = bqethAdmin();
+        address bqethSvc = bas.bqethServices;
+        if (bqethSvc == address(0x0)) {
+            return LibDiamond.contractOwner();
+        }
+        else {
+            return bqethSvc;
+            
+        }
     }
 }

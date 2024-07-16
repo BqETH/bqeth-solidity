@@ -102,7 +102,6 @@ contract BqETHDecrypt is ReentrancyGuard {
 
             // Pay the decryptor his reward
             uint256 amount = bs.escrow_balances[puzzle.creator];
-            console.log("Account Escrow balance:", puzzle.creator, amount);
             require(address(this).balance >= amount, "Contract Balance Insufficient.");
 
             (bool success, ) = msg.sender.call{value: amount}("");

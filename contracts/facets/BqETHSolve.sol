@@ -95,7 +95,7 @@ contract BqETHSolve is ReentrancyGuard {
             );
 
             // Make sure the pid is valid for the _N in the chain
-            uint256 ph = LibBqETH._puzzleKey(chain.N, puzzle.x, puzzle.t);
+            uint256 ph = LibBqETH.puzzleKey(chain.N, puzzle.x, puzzle.t);
             require(ph == _pid, "Must claim a valid puzzle.");
 
             // Now we can bother to verify if the reward is high enough, and clean up the chain
@@ -204,8 +204,8 @@ contract BqETHSolve is ReentrancyGuard {
             )
             ) {
             // Send remaining decryption escrow funds to BqETH
-            address owner = LibDiamond.contractOwner();
-            (bool success, ) = owner.call{value: bs.escrow_balances[puzzle.creator]}("");
+            address bqethServices = LibBqETH._getBqETHServicesAddress();
+            (bool success, ) = bqethServices.call{value: bs.escrow_balances[puzzle.creator]}("");
             require(success, "Subscription & Services Transfer failed.");
 
             // Now we can free up space in the contract

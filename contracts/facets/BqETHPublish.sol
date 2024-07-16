@@ -3,6 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "hardhat/console.sol";
+import "../libraries/LibBqETH.sol";
 import { LibDiamond } from "hardhat-deploy/solc_0.8/diamond/libraries/LibDiamond.sol";
 
 import "../libraries/LibBqETH.sol";
@@ -38,11 +39,16 @@ struct BqETHData {
 
 
 contract BqETHPublish is ReentrancyGuard {
-    event NewPuzzleRegistered(address sender, uint256 pid, bool ready);
+    event NewPuzzleRegistered(
+        address sender, 
+        uint256 pid, 
+        bool ready
+    );
 
     // Used for sponsoring
     event NewPolicyRegistered(
-        string ritualId
+        string ritualId, 
+        address sender
     );
 
     // Used for BqETH Tracking of notification selections
@@ -79,9 +85,10 @@ contract BqETHPublish is ReentrancyGuard {
         uint256 reward_total = 0;
         uint256 first_pid = 0;
         require(_c.length < 33, "Chain too long.");
+        require(_c.length > 5, "Chain too short.");
 
         for (uint256 i = 0; i < _c.length; i++) {
-            uint256 ph = puzzleKey(_N, _c[i].x, _c[i].t);
+            uint256 ph = LibBqETH.puzzleKey(_N, _c[i].x, _c[i].t);
             // TODO Check that the puzzle did not already exist:
             // Puzzle memory puzzle = userPuzzles[ph];
             // require(puzzle.N != 0, "Puzzle already registered");   // We cannot afford a collision
@@ -106,14 +113,8 @@ contract BqETHPublish is ReentrancyGuard {
                 bs.activeChainHead[msg.sender] = ph;
                 first_pid = ph;
             }
-
-            // console.log(
-            //     "Registered puzzle with Hash :'%s'",
-            //     LibBqETH.toHexString(ph),
-            //     "For user", msg.sender
-            // );
-            // Send the Event
-            emit NewPuzzleRegistered(msg.sender, ph, (i == 0) ? true : false); // First puzzle in a chain is read-to-work
+            // Send the Event, only the first puzzle in a chain is read-to-solve
+            emit NewPuzzleRegistered(msg.sender, ph, (i == 0) ? true : false); 
         }
         // msg.value better be more than the sum of puzzle chain rewards
         require(msg.value >= reward_total, "Insufficient value provided.");
@@ -123,15 +124,6 @@ contract BqETHPublish is ReentrancyGuard {
         bs.userChains[msg.sender].chains.push(chain);
 
         return first_pid;
-    }
-
-        // Some unique key for each puzzle
-    function puzzleKey(
-        bytes memory _N,
-        bytes memory _x,
-        uint256 _t
-    ) internal pure returns (uint256) {
-        return uint256(keccak256(abi.encodePacked(_N, _x, _t)));
     }
 
     /// @notice Registers a user Puzzle Chain
@@ -174,15 +166,16 @@ contract BqETHPublish is ReentrancyGuard {
         // Handle BqETH Subscription payment
         if (_bqethData.passThrough > 0) {
             // Send _passthrough Funds to BqETH
-            address owner = LibDiamond.contractOwner();
+            address bqethServices = LibBqETH._getBqETHServicesAddress();
             // Safe way to send funds
-            (bool success, ) = owner.call{value: _bqethData.passThrough+_bqethData.servicesAmt}("");
+            (bool success, ) = bqethServices.call{value: _bqethData.passThrough+_bqethData.servicesAmt}("");
             require(success, "Subscription & Services Transfer failed.");
         }
 
         // This event is needed for sponsoring
         emit NewPolicyRegistered(
-            _policy.ritualId
+            _policy.ritualId,
+            msg.sender
         );
 
         emit NewNotificationSet(
@@ -231,9 +224,9 @@ contract BqETHPublish is ReentrancyGuard {
         // Handle BqETH Subscription payment
         if (_bqethData.passThrough > 0) {
             // Send _passthrough Funds to BqETH
-            address owner = LibDiamond.contractOwner();
+            address bqethServices = LibBqETH._getBqETHServicesAddress();
             // Safe way to send funds
-            (bool success, ) = owner.call{value: _bqethData.passThrough+_bqethData.servicesAmt}("");
+            (bool success, ) = bqethServices.call{value: _bqethData.passThrough+_bqethData.servicesAmt}("");
             require(success, "Subscription & Services Transfer failed.");
         }
         
@@ -288,7 +281,9 @@ contract BqETHPublish is ReentrancyGuard {
     // Cancel, Refund, Pruning, Flip Credit, functions
 
     // Prune all chains for this user to the last unsolved puzzle, return the sum of rewards to refund
-    function pruneChains(address _creator) internal returns (uint128) {
+    function pruneChains(address _creator) 
+        internal returns (uint128) 
+    {
 
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         uint128 refund  = 0;
@@ -335,7 +330,9 @@ contract BqETHPublish is ReentrancyGuard {
 
 
     // Inspired from claimPuzzleReward
-    function cancelEverything() public onlyContractCustomer(msg.sender) {
+    function cancelEverything() 
+        public onlyContractCustomer(msg.sender) 
+    {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
 
         // Now take care of wiping out secrets so they are undecryptable forever
