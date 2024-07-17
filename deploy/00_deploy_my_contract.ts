@@ -53,7 +53,8 @@ const deployDiamondFunc: DeployFunction = async function (hre: HardhatRuntimeEnv
         'BqETH',
         'BqETHPublish',
         'BqETHSolve',
-        'BqETHDecrypt'
+        'BqETHDecrypt',
+        'BqETHManagement'
       ],
       defaultOwnershipFacet: true,
       defaultCutFacet: true,

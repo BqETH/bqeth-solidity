@@ -149,6 +149,7 @@ contract BqETHPublish is ReentrancyGuard {
         bs.escrow_balances[msg.sender] = msg.value - _bqethData.passThrough;
         // AUDIT: Can't prevent being called by a contract constructor
         require(msg.sender != address(0), "No calls from other contracts"); 
+        // require(msg.value > 1);  // Minimum amount for puzzles, to prevent DDOS
 
         bs.activePolicies[msg.sender] = ActivePolicy(
             msg.sender,
