@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.0 <0.9.0;
+pragma solidity >=0.8.19;
 
 // From https://github.com/liamzebedee/typescript-solidity-merkle-tree
 // I had to make it an abstract contract and change the pragma because the 
@@ -50,10 +50,10 @@ library MerkleTreeVerifier {
         return node;
     }
 
-    function _hashLeaf(bytes32 leaf) private pure returns (bytes32) {
-        bytes1 LEAF_PREFIX = 0x00;
-        return keccak256(abi.encodePacked(LEAF_PREFIX, leaf));
-    }
+    // function _hashLeaf(bytes32 leaf) private pure returns (bytes32) {
+    //     bytes1 LEAF_PREFIX = 0x00;
+    //     return keccak256(abi.encodePacked(LEAF_PREFIX, leaf));
+    // }
 
     function _hashBranch(
         bytes32 left,

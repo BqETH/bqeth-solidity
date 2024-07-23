@@ -1,4 +1,4 @@
-pragma solidity >=0.8.0 <0.9.0;
+pragma solidity >=0.8.19;
 //SPDX-License-Identifier: MIT
 
 import "hardhat/console.sol";
@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../libraries/PietrzakVerifier.sol";
 
 contract BqETHManagement is ReentrancyGuard {
-    bytes32 immutable salt = "BqETH";
 
     // ================================================================================================================================================
     // TODO: Remove this function, eventually, before throwing away the keys.

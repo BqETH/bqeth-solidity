@@ -128,7 +128,7 @@ library LibBqETH {
         BqETHStorage storage bs = bqethStorage();
         // AUDIT LibBqETH._findPuzzleChain(uint256,address).chain (contracts/libraries/LibBqETH.sol#117) is a local variable never initialized
         // Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#uninitialized-local-variables
-        Chain memory chain; // Not always initialized
+        Chain memory chain; // Not always initialized, but not a risk.
         bool found = false;
         // We must first find the chain for this puzzle
         Chain[] memory mychains = bs.userChains[_creator].chains;

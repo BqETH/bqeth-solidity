@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // See https://github.com/firoorg/solidity-BigNumber for background
-pragma solidity >=0.8.10 <0.9.0;
+pragma solidity >=0.8.19;
 
 // Definition here allows both the lib and inheriting contracts to use BigNumber directly.
 struct BigNumber { 
@@ -33,13 +33,14 @@ library BigNumbers {
      *  @param bitlen bit length of output.
      *  @return BigNumber instance
      */
-    function init(
-        bytes memory val, 
-        bool neg, 
-        uint bitlen
-    ) internal view returns(BigNumber memory){
-        return _init(val, neg, bitlen);
-    }
+    // AUDIT: Unused function
+    // function init(
+    //     bytes memory val, 
+    //     bool neg, 
+    //     uint bitlen
+    // ) internal view returns(BigNumber memory){
+    //     return _init(val, neg, bitlen);
+    // }
 
     /** @notice initialize a BN instance
      *  @dev wrapper function for _init. initializes from bytes value.
@@ -244,8 +245,8 @@ library BigNumbers {
     ) internal view returns(BigNumber memory) {
         //if exponent is negative, other method with this same name should be used.
         //if modulus is negative or zero, we cannot perform the operation.
-        require(  e.neg==false
-                && n.neg==false
+        require(   !e.neg
+                && !n.neg
                 && !isZero(n.val), "BN4");
 
         bytes memory _result = _modexp(a.val,e.val,n.val);
@@ -315,8 +316,8 @@ library BigNumbers {
         int trigger = 1;
         if(signed){
             if(a.neg && b.neg) trigger = -1;
-            else if(a.neg==false && b.neg==true) return 1;
-            else if(a.neg==true && b.neg==false) return -1;
+            else if(!a.neg && b.neg) return 1;
+            else if(a.neg && !b.neg) return -1;
         }
 
         if(a.bitlen>b.bitlen) return    trigger;   // 1*trigger

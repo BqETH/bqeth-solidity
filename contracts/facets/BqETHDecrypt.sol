@@ -1,4 +1,4 @@
-pragma solidity >=0.8.0 <0.9.0;
+pragma solidity >=0.8.19;
 //SPDX-License-Identifier: MIT
 
 import "hardhat/console.sol";
@@ -157,7 +157,7 @@ contract BqETHDecrypt is ReentrancyGuard {
                     proofPaths,
                     policy.mtroot,
                     leaf
-                ) == true,
+                ),
                 "INVALID_PROOF"
             );
 

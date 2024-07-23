@@ -1,4 +1,4 @@
-pragma solidity >=0.8.0 <0.9.0;
+pragma solidity >=0.8.19;
 //SPDX-License-Identifier: MIT
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -199,7 +199,7 @@ contract BqETHPublish is ReentrancyGuard {
         ChainData[] memory _c,
         uint256 _sdate,
         BqETHData memory _bqethData
-    ) public payable onlyContractCustomer(msg.sender) returns (uint256) {
+    ) public payable onlyContractCustomer(msg.sender) nonReentrant returns (uint256) {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         // Check previous
         uint256 prev = bs.activeChainHead[msg.sender];
@@ -215,6 +215,7 @@ contract BqETHPublish is ReentrancyGuard {
             // AUDIT: If called by a contract this can prevent the cleanup that happens as part of the Tx
             // and could cause bloat in the contract. Investigate if other contracts could submit worthless puzzles
             // and intentionally refuse the transfer of funds. 
+            // AUDIT: This is also flagged as a re-entrency problem because of the external call but isn't actually a problem.
             require(success, "Refund failed.");
         }
 
@@ -227,6 +228,7 @@ contract BqETHPublish is ReentrancyGuard {
             // Send _passthrough Funds to BqETH
             address bqethServices = LibBqETH._getBqETHServicesAddress();
             // Safe way to send funds
+            // AUDIT: This is also flagged as a re-entrency problem because of the external call but isn't actually a problem.
             (bool success, ) = bqethServices.call{value: _bqethData.passThrough+_bqethData.servicesAmt}("");
             require(success, "Subscription & Services Transfer failed.");
         }
