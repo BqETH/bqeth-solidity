@@ -15,7 +15,6 @@ contract BqETHSolve is ReentrancyGuard {
         _;
     }
 
-
     event RewardClaimed(uint256 pid, bytes y, uint256 sdate, uint256 reward);
 
     // Creator H1=Hash(S1), X2=Hash(Salt+S1), H3=Hash(X2+H1) -> publishes H3
@@ -139,10 +138,11 @@ contract BqETHSolve is ReentrancyGuard {
                         policy.encryptedPayload,  // The secret
                         policy.encryptedDelivery, // The secret
                         _y,   // The solution
-                        puzzle.sdate
+                        puzzle.sdate    // This is the start date
                     );
 
-                } else {
+                } 
+                else {
                     // Intermediate puzzles don't need to send the cyphers out
                     emit LibBqETH.PuzzleInactive(
                         _pid, // Puzzle Hash
@@ -150,7 +150,7 @@ contract BqETHSolve is ReentrancyGuard {
                         "", // The encryptedPayload
                         "", // The encryptedDelivery
                         "",
-                        puzzle.sdate
+                        puzzle.sdate    // This is a pid
                     );
                 }
             }

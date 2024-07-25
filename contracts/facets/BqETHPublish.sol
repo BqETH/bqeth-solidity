@@ -42,7 +42,8 @@ contract BqETHPublish is ReentrancyGuard {
     event NewPuzzleRegistered(
         address sender, 
         uint256 pid, 
-        bool ready
+        bool ready,
+        uint128 t
     );
 
     // Used for sponsoring
@@ -57,10 +58,11 @@ contract BqETHPublish is ReentrancyGuard {
         string notifications    // BqETH encrypted Notification payload
     );
 
-    // Used for BqETH Refund of a portion of services
+    // Used for BqETH to know how much to Refund for services
     event CancellationNotification(
         address sender,
-        uint128[] times
+        uint128[] times,
+        uint128 refund
     );
 
     modifier onlyContractCustomer(address _user) {
@@ -114,7 +116,7 @@ contract BqETHPublish is ReentrancyGuard {
                 first_pid = ph;
             }
             // Send the Event, only the first puzzle in a chain is read-to-solve
-            emit NewPuzzleRegistered(msg.sender, ph, (i == 0) ? true : false); 
+            emit NewPuzzleRegistered(msg.sender, ph, (i == 0) ? true : false, pz.t); 
         }
         // msg.value better be more than the sum of puzzle chain rewards
         require(msg.value >= reward_total, "Insufficient value provided.");
@@ -146,10 +148,11 @@ contract BqETHPublish is ReentrancyGuard {
     ) public payable returns (uint256) {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         uint256 first_pid = recordPuzzles(_N, _c, _sdate);
+        // TODO: Needs to add if existing escrow
         bs.escrow_balances[msg.sender] = msg.value - _bqethData.passThrough;
         // AUDIT: Can't prevent being called by a contract constructor
         require(msg.sender != address(0), "No calls from other contracts"); 
-        // require(msg.value > 1);  // Minimum amount for puzzles, to prevent DDOS
+        // require(msg.value > 10);  // Minimum amount for puzzles (5 USD), to prevent DDOS on mainnet
 
         bs.activePolicies[msg.sender] = ActivePolicy(
             msg.sender,
@@ -356,12 +359,7 @@ contract BqETHPublish is ReentrancyGuard {
             }
             pid_to_check = next_pid;
         }
-        // Now that we have the list of all puzzle times being cancelled
-        // Send the event for services refund
-        emit CancellationNotification(
-            msg.sender,
-            times
-        );
+
 
         // Prune previous chains and refund the user if necessary
         uint128 refund = pruneChains(msg.sender);
@@ -371,8 +369,15 @@ contract BqETHPublish is ReentrancyGuard {
             bs.escrow_balances[msg.sender] -= refund;
         }
 
+        // Now that we have the list of all puzzle times being cancelled
+        // Send the event for services refund
+        emit CancellationNotification(
+            msg.sender,
+            times,
+            refund
+        );
         // This leaves an amount in escrow for the remaining active puzzles
-        // and for the decryption reward, which will be sent to BqETH 
-        // when the last Puzzle has been claimed.
+        // and for the decryption reward which will be sent to BqETH 
+        // when the last Puzzle reward has been claimed.
     }
 }

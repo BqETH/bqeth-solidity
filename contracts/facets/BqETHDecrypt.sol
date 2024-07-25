@@ -176,7 +176,8 @@ contract BqETHDecrypt is ReentrancyGuard {
             );
 
             // AUDIT: We should also verify the new CID using verifyIPFS library
-            emit decryptionRewardClaimed(_pid, 
+            emit decryptionRewardClaimed(
+                _pid, 
                 puzzle.creator, 
                 newcid, 
                 _keywords 
