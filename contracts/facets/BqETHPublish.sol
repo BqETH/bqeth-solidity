@@ -58,6 +58,12 @@ contract BqETHPublish is ReentrancyGuard {
         string notifications    // BqETH encrypted Notification payload
     );
 
+    // Used for BqETH to know how much is refunded
+    event FlipNotification(
+        address sender,
+        uint128 refund,
+        string notifications    // BqETH Encrypted Notification Payload
+    );
     // Used for BqETH to know how much to Refund for services
     event CancellationNotification(
         address sender,
@@ -220,6 +226,7 @@ contract BqETHPublish is ReentrancyGuard {
             // and intentionally refuse the transfer of funds. 
             // AUDIT: This is also flagged as a re-entrency problem because of the external call but isn't actually a problem.
             require(success, "Refund failed.");
+            emit FlipNotification(msg.sender, refund, _bqethData.notifications);
         }
 
         uint256 first_pid = recordPuzzles(_N, _c, _sdate);
