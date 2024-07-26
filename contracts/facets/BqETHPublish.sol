@@ -226,9 +226,10 @@ contract BqETHPublish is ReentrancyGuard {
             // and intentionally refuse the transfer of funds. 
             // AUDIT: This is also flagged as a re-entrency problem because of the external call but isn't actually a problem.
             require(success, "Refund failed.");
-            emit FlipNotification(msg.sender, refund, _bqethData.notifications);
         }
 
+        emit FlipNotification(msg.sender, refund, _bqethData.notifications);
+        
         uint256 first_pid = recordPuzzles(_N, _c, _sdate);
         // Add to the escrow total for the creator's address.
         bs.escrow_balances[msg.sender] += msg.value - _bqethData.passThrough;
