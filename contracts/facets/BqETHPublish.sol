@@ -62,7 +62,8 @@ contract BqETHPublish is ReentrancyGuard {
     event FlipNotification(
         address sender,
         uint128 refund,
-        string notifications    // BqETH Encrypted Notification Payload
+        string notifications,    // BqETH Encrypted Notification Payload
+        uint128[] times
     );
     // Used for BqETH to know how much to Refund for services
     event CancellationNotification(
@@ -217,6 +218,8 @@ contract BqETHPublish is ReentrancyGuard {
         address previous = bs.userPuzzles[prev].creator;
         require(msg.sender == previous, "Only puzzle owner.");
 
+        uint128[] memory times = getCurrentRemainingTimes(prev);
+
         // Prune previous chains and refund the user if necessary
         uint128 refund = pruneChains(msg.sender);
         if (refund > 0) {
@@ -228,7 +231,7 @@ contract BqETHPublish is ReentrancyGuard {
             require(success, "Refund failed.");
         }
 
-        emit FlipNotification(msg.sender, refund, _bqethData.notifications);
+        emit FlipNotification(msg.sender, refund, _bqethData.notifications, times);
         
         uint256 first_pid = recordPuzzles(_N, _c, _sdate);
         // Add to the escrow total for the creator's address.
@@ -354,20 +357,8 @@ contract BqETHPublish is ReentrancyGuard {
         bs.activePolicies[msg.sender].mkh = keccak256(abi.encodePacked(Y3K));
         bs.activePolicies[msg.sender].dkh = keccak256(abi.encodePacked(Y3K));
 
-        // Memory arrays are not resizable, and we don't want this stuff in storage
-        uint128[] memory times = new uint128[](32);
-        uint index = 0;
-        // collect all puzzle times from the active puzzle down to the end of the chain
-        uint256 pid_to_check = bs.activeChainHead[msg.sender];
-        while (pid_to_check > Y3K) {
-            uint256 next_pid = bs.userPuzzles[pid_to_check].sdate;
-            if (bs.userPuzzles[pid_to_check].x.length != 0) {
-                times[index] = bs.userPuzzles[pid_to_check].t;
-                index++;
-            }
-            pid_to_check = next_pid;
-        }
-
+        uint256 prev = bs.activeChainHead[msg.sender];
+        uint128[] memory times = getCurrentRemainingTimes(prev);
 
         // Prune previous chains and refund the user if necessary
         uint128 refund = pruneChains(msg.sender);
@@ -387,5 +378,24 @@ contract BqETHPublish is ReentrancyGuard {
         // This leaves an amount in escrow for the remaining active puzzles
         // and for the decryption reward which will be sent to BqETH 
         // when the last Puzzle reward has been claimed.
+    }
+
+    function getCurrentRemainingTimes(uint256 start_pid) internal view returns (uint128[] memory times) {
+                
+        LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
+        // Memory arrays are not resizable, and we don't want this stuff in storage
+        uint128[] memory tarray = new uint128[](32);
+        uint index = 0;
+        // collect all puzzle times from the active puzzle down to the end of the chain
+        uint256 pid_to_check = start_pid;
+        while (pid_to_check > Y3K) {
+            uint256 next_pid = bs.userPuzzles[pid_to_check].sdate;
+            if (bs.userPuzzles[pid_to_check].x.length != 0) {
+                tarray[index] = bs.userPuzzles[pid_to_check].t;
+                index++;
+            }
+            pid_to_check = next_pid;
+        }
+        return tarray;
     }
 }
