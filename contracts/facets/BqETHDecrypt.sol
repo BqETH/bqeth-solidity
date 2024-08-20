@@ -10,9 +10,17 @@ import "../libraries/BigNumbers.sol";
 contract BqETHDecrypt is ReentrancyGuard {
     bytes32 immutable salt = "BqETH";
 
-    modifier onlyValidFarmer() {
-        require(msg.sender != address(0), "Only valid decryptor.");
+    modifier isNotAContract() {
+        require(!isAContract(msg.sender));  // Warning: will return false if the call is made from the constructor of a smart contract
+        require(tx.origin == msg.sender);   // Prevents a constructor from making the call, overkill ?
         _;
+    }
+    function isAContract(address _address) private view returns (bool isContract) {
+        uint32 size;
+        assembly {
+            size := extcodesize(_address)
+        }
+        return (size != 0);
     }
 
     event decryptionRewardClaimed(
@@ -26,7 +34,7 @@ contract BqETHDecrypt is ReentrancyGuard {
         uint256 _pid,
         bytes32 _h1,
         bytes32 _x2
-    ) public onlyValidFarmer returns (uint256) {
+    ) external isNotAContract returns (uint256) {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         // Force execution of claimPuzzle and claimReward to happen in different blocks
         // Look up the puzzle
@@ -39,14 +47,6 @@ contract BqETHDecrypt is ReentrancyGuard {
             "Claiming decryption from Puzzle:",
             LibBqETH.toHexString(_pid)
         );
-        // console.log("Received h1:");
-        // console.logBytes(abi.encodePacked(_h1));
-        // console.log("Received x2:");
-        // console.logBytes(abi.encodePacked(_x2));
-        // console.log("sha256(b):");
-        // console.logBytes(abi.encodePacked(sha256(b)));
-        // console.log("Expected h3:");
-        // console.logBytes(abi.encodePacked(policy.mkh));
 
         require(
             sha256(b) == policy.mkh,
@@ -64,10 +64,13 @@ contract BqETHDecrypt is ReentrancyGuard {
         uint256 _pid,
         string memory _decryptedMessage,
         string memory _keywords
-    ) public onlyValidFarmer nonReentrant returns (uint256) {
+    ) external isNotAContract nonReentrant returns (uint256) {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         // Force execution of claimPuzzle and claimReward to happen in different blocks
-        require(bs.claimBlockNumber[_pid] < block.number, "Must wait one block before claiming decryption reward.");
+        require(
+            bs.claimBlockNumber[_pid] < block.number,
+            "Must wait one block before claiming decryption reward."
+        );
         // Look up the puzzle
         Puzzle memory puzzle = bs.userPuzzles[_pid];
         console.log(
@@ -102,7 +105,10 @@ contract BqETHDecrypt is ReentrancyGuard {
 
             // Pay the decryptor his reward
             uint256 amount = bs.escrow_balances[puzzle.creator];
-            require(address(this).balance >= amount, "Contract Balance Insufficient.");
+            require(
+                address(this).balance >= amount,
+                "Contract Balance Insufficient."
+            );
 
             (bool success, ) = msg.sender.call{value: amount}("");
             require(success, "Transfer failed.");
@@ -111,7 +117,7 @@ contract BqETHDecrypt is ReentrancyGuard {
                 _pid,
                 puzzle.creator,
                 _decryptedMessage,
-                _keywords 
+                _keywords
             );
 
             delete bs.escrow_balances[puzzle.creator];
@@ -130,14 +136,17 @@ contract BqETHDecrypt is ReentrancyGuard {
     function claimDecryptionRewardIPFS(
         uint256 _pid,
         bytes32[] memory proof,
-        bool[] memory proofPaths,   // whether to hash as right or left node
+        bool[] memory proofPaths, // whether to hash as right or left node
         bytes32 leaf,
         string memory newcid,
         string memory _keywords
-    ) public onlyValidFarmer nonReentrant returns (uint256) {
+    ) external isNotAContract nonReentrant returns (uint256) {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         // Force execution of claimPuzzle and claimReward to happen in different blocks
-        require(bs.claimBlockNumber[_pid] < block.number, "Must wait one block before claiming reward.");
+        require(
+            bs.claimBlockNumber[_pid] < block.number,
+            "Must wait one block before claiming reward."
+        );
 
         // Look up the puzzle
         Puzzle memory puzzle = bs.userPuzzles[_pid];
@@ -177,20 +186,22 @@ contract BqETHDecrypt is ReentrancyGuard {
 
             // AUDIT: We should also verify the new CID using verifyIPFS library
             emit decryptionRewardClaimed(
-                _pid, 
-                puzzle.creator, 
-                newcid, 
-                _keywords 
+                _pid,
+                puzzle.creator,
+                newcid,
+                _keywords
             );
 
             // Pay the decryptor his reward
             uint256 amount = bs.escrow_balances[puzzle.creator];
-            console.log("Account Escrow balance:", puzzle.creator, amount);
-            require(address(this).balance >= amount, "Insufficient Contract Balance.");
+            // console.log("Account Escrow balance:", puzzle.creator, amount);
+            require(
+                address(this).balance >= amount,
+                "Insufficient Contract Balance."
+            );
 
             (bool success, ) = msg.sender.call{value: amount}("");
             require(success, "Transfer failed.");
-
 
             delete bs.escrow_balances[puzzle.creator];
             delete bs.activePolicies[puzzle.creator];

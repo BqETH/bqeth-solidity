@@ -10,16 +10,16 @@ contract BqETHManagement is ReentrancyGuard {
 
     // ================================================================================================================================================
     // TODO: Remove this function, eventually, before throwing away the keys.
-    function sweepFunds() public {
-        LibDiamond.enforceIsContractOwner();
-        require(address(this).balance >= 0, "Insufficient Funds.");
-        address bqethsvc = LibBqETH._getBqETHServicesAddress();
-        // Contract Owner can Sweep funds to BqETH Services
-        (bool success, ) = bqethsvc.call{value: address(this).balance}("");
-        require(success, "Transfer failed.");
-    }
+    // function sweepFunds() public {
+    //     LibDiamond.enforceIsContractOwner();
+    //     require(address(this).balance >= 0, "Insufficient Funds.");
+    //     address bqethsvc = LibBqETH._getBqETHServicesAddress();
+    //     // Contract Owner can Sweep funds to BqETH Services
+    //     (bool success, ) = bqethsvc.call{value: address(this).balance}("");
+    //     require(success, "Transfer failed.");
+    // }
 
-    function setRewardPerDay(uint128 gweiPerDay) public {
+    function setRewardPerDay(uint128 gweiPerDay) external nonReentrant {
         LibDiamond.enforceIsContractOwner();
         LibBqETH._setRewardPerDay(gweiPerDay);
     }
@@ -28,7 +28,7 @@ contract BqETHManagement is ReentrancyGuard {
         return LibBqETH._getRewardPerDay();
     }
 
-    function setSecondsPer32Exp(uint128 secondsPer32Exp) public {
+    function setSecondsPer32Exp(uint128 secondsPer32Exp) external nonReentrant {
         LibDiamond.enforceIsContractOwner();
         LibBqETH._setSecondsPer32Exp(secondsPer32Exp);
     }
@@ -41,7 +41,7 @@ contract BqETHManagement is ReentrancyGuard {
         return LibBqETH._getBqETHServicesAddress();
     }
 
-    function setBqETHServicesAddress(address bqethServicesAddress) public {
+    function setBqETHServicesAddress(address bqethServicesAddress) external nonReentrant {
         LibDiamond.enforceIsContractOwner();
         LibBqETH._setBqETHServicesAddress(bqethServicesAddress);
     }

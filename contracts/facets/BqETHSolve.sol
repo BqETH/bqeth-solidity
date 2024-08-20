@@ -10,9 +10,17 @@ contract BqETHSolve is ReentrancyGuard {
     bytes32 immutable salt = "BqETH";
     uint256 constant min_verification_reward = 447552447552444;
 
-    modifier onlyValidFarmer() {
-        require(msg.sender != address(0), "Only valid farmer.");
+    modifier isNotAContract() {
+        require(!isAContract(msg.sender));  // Warning: will return false if the call is made from the constructor of a smart contract
+        require(tx.origin == msg.sender);   // Prevents a constructor from making the call, overkill ?
         _;
+    }
+    function isAContract(address _address) private view returns (bool isContract) {
+        uint32 size;
+        assembly {
+            size := extcodesize(_address)
+        }
+        return (size != 0);
     }
 
     event RewardClaimed(uint256 pid, bytes y, uint256 sdate, uint256 reward);
@@ -24,7 +32,7 @@ contract BqETHSolve is ReentrancyGuard {
         uint256 _pid,
         bytes32 _h1,
         bytes32 _x2
-    ) public onlyValidFarmer returns (uint256) {
+    ) external isNotAContract returns (uint256) {
         // Force execution of claimPuzzle and claimReward to happen in different blocks
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         // Look up the puzzle
@@ -42,7 +50,7 @@ contract BqETHSolve is ReentrancyGuard {
     }
 
     // Fast and low gas log base2
-    function log2(uint256 x) public pure returns (uint8) {
+    function log2(uint256 x) private pure returns (uint8) {
         uint8 n = 0;
 
         if (x >= 2 ** 128) { x >>= 128; n += 128; }
@@ -62,13 +70,14 @@ contract BqETHSolve is ReentrancyGuard {
         uint256 _pid,
         bytes memory _y,
         bytes[] memory _proof
-    ) public onlyValidFarmer nonReentrant returns (uint256) {
+    ) external isNotAContract nonReentrant returns (uint256) {
         // Force execution of claimPuzzle and claimReward to happen in different blocks
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         require(
             bs.claimBlockNumber[_pid] < block.number,
             "Must wait one block before claiming puzzle reward."
         );
+
         // Look up the puzzle
         Puzzle memory puzzle = bs.userPuzzles[_pid];
         Chain memory chain = LibBqETH._findPuzzleChain(_pid, puzzle.creator);
@@ -81,9 +90,6 @@ contract BqETHSolve is ReentrancyGuard {
                 bs.claimData[_pid] == msg.sender,
                 "Original farmer required"
             );
-            // The solution submitted must match the commitment
-            // bytes32 h1 = sha256(abi.encodePacked(_y));
-            // bytes32 x2 = sha256(abi.encodePacked(salt, _y));
 
             require(
                 sha256(abi.encodePacked(
@@ -127,7 +133,7 @@ contract BqETHSolve is ReentrancyGuard {
                 emit RewardClaimed(_pid, _y, puzzle.sdate, puzzle.reward);
 
                 // Handle the end of puzzle chain situation
-                if (puzzle.sdate < Y3K) {
+                if (puzzle.sdate < LibBqETH.Y3K) {
                     
                     // Remove all puzzles from the chain
                     houseKeeping(puzzle, chain);
@@ -163,16 +169,16 @@ contract BqETHSolve is ReentrancyGuard {
         }
     }
 
-    function houseKeeping(Puzzle memory puzzle, Chain memory chain) internal {
+    function houseKeeping(Puzzle memory puzzle, Chain memory chain) private {
 
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
 
         // last puzzle in the chain -> remove all puzzles from the chain
         uint256 pid_to_clear = chain.head;
-        while (pid_to_clear > Y3K) {
+        while (pid_to_clear > LibBqETH.Y3K) {
             // Clear puzzle chain
             uint256 next_pid = bs.userPuzzles[pid_to_clear].sdate;
-            if (next_pid > Y3K) {
+            if (next_pid > LibBqETH.Y3K) {
                 delete bs.userPuzzles[pid_to_clear];
             }
             pid_to_clear = next_pid;
@@ -200,7 +206,7 @@ contract BqETHSolve is ReentrancyGuard {
         // If the user has no remaining chain and his policy is marked as cancelled
         if (bs.userChains[puzzle.creator].chains.length == 0 &&
             (bs.activePolicies[puzzle.creator].mkh == 0 ||
-             bs.activePolicies[puzzle.creator].mkh == keccak256(abi.encodePacked(Y3K))
+             bs.activePolicies[puzzle.creator].mkh == keccak256(abi.encodePacked(LibBqETH.Y3K))
             )
             ) {
             // Send remaining decryption escrow funds to BqETH

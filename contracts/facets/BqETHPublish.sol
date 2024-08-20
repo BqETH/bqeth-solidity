@@ -37,7 +37,6 @@ struct BqETHData {
     string notifications; // BqETH encrypted Notification payload
 }
 
-
 contract BqETHPublish is ReentrancyGuard {
     event NewPuzzleRegistered(
         address sender, 
@@ -72,11 +71,25 @@ contract BqETHPublish is ReentrancyGuard {
         uint128 refund
     );
 
+    //AUDIT: Not virtual to prevent derived contracts from altering this
     modifier onlyContractCustomer(address _user) {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         Puzzle memory puzzle = bs.userPuzzles[bs.activeChainHead[_user]];
         require(msg.sender == puzzle.creator, "Owner only function");
         _;
+    }
+
+    modifier isNotAContract() {
+        require(!isAContract(msg.sender));  // Warning: will return false if the call is made from the constructor of a smart contract
+        require(tx.origin == msg.sender);   // Prevents a constructor from making the call, overkill ?
+        _;
+    }
+    function isAContract(address _address) private view returns (bool isContract) {
+        uint32 size;
+        assembly {
+            size := extcodesize(_address)
+        }
+        return (size != 0);
     }
 
     /// @notice Registers a user Puzzle Chain
@@ -89,7 +102,7 @@ contract BqETHPublish is ReentrancyGuard {
         bytes memory _N,
         ChainData[] memory _c,
         uint256 _sdate
-    ) internal returns (uint256) {
+    ) private returns (uint256) {  //TODO: AUDIT: is private sufficient to prevent DDOS from a derived contract ?
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         uint256 reward_total = 0;
         uint256 first_pid = 0;
@@ -152,14 +165,14 @@ contract BqETHPublish is ReentrancyGuard {
         PolicyData memory _policy,
         PayloadData memory _payload,
         BqETHData memory _bqethData
-    ) public payable returns (uint256) {
+    ) external payable isNotAContract nonReentrant returns (uint256) {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         uint256 first_pid = recordPuzzles(_N, _c, _sdate);
         // TODO: Needs to add if existing escrow
         bs.escrow_balances[msg.sender] = msg.value - _bqethData.passThrough;
         // AUDIT: Can't prevent being called by a contract constructor
         require(msg.sender != address(0), "No calls from other contracts"); 
-        // require(msg.value > 10);  // Minimum amount for puzzles (5 USD), to prevent DDOS on mainnet
+    //TODO: require(msg.value > 10);  // Minimum amount for puzzles (5 USD), to prevent DDOS on mainnet
 
         bs.activePolicies[msg.sender] = ActivePolicy(
             msg.sender,
@@ -209,7 +222,7 @@ contract BqETHPublish is ReentrancyGuard {
         ChainData[] memory _c,
         uint256 _sdate,
         BqETHData memory _bqethData
-    ) public payable onlyContractCustomer(msg.sender) nonReentrant returns (uint256) {
+    ) external payable onlyContractCustomer(msg.sender) nonReentrant returns (uint256) {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         // Check previous
         uint256 prev = bs.activeChainHead[msg.sender];
@@ -252,7 +265,7 @@ contract BqETHPublish is ReentrancyGuard {
 
     function replaceMessageKit(
         PayloadData memory _payload
-    ) public onlyContractCustomer(msg.sender) 
+    ) external onlyContractCustomer(msg.sender) 
     {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         // Look up the active policy object and just change the treasuremap
@@ -276,7 +289,7 @@ contract BqETHPublish is ReentrancyGuard {
 
     function replaceNotification(
         string memory _notification
-    ) public onlyContractCustomer(msg.sender) {
+    ) external onlyContractCustomer(msg.sender) {
 
         emit NewNotificationSet(
             msg.sender,
@@ -286,7 +299,8 @@ contract BqETHPublish is ReentrancyGuard {
     }
 
     function setWhistleBlower(address user, bool wb
-    ) public onlyContractCustomer(msg.sender) 
+    ) 
+        external onlyContractCustomer(msg.sender) nonReentrant
     {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         // Look up the active policy object and just change the treasuremap
@@ -299,7 +313,7 @@ contract BqETHPublish is ReentrancyGuard {
 
     // Prune all chains for this user to the last unsolved puzzle, return the sum of rewards to refund
     function pruneChains(address _creator) 
-        internal returns (uint128) 
+        private returns (uint128) 
     {
 
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
@@ -315,7 +329,7 @@ contract BqETHPublish is ReentrancyGuard {
             Chain memory c = mychains[i];
             uint256 pid_to_check = c.head;
             uint256 last_active = 0;
-            while (pid_to_check > Y3K) {    // There is a next puzzle
+            while (pid_to_check > LibBqETH.Y3K) {    // There is a next puzzle
                 uint256 next_pid = bs.userPuzzles[pid_to_check].sdate;
 
                 if (last_active == 0  && 
@@ -348,14 +362,14 @@ contract BqETHPublish is ReentrancyGuard {
 
     // Inspired from claimPuzzleReward
     function cancelEverything() 
-        public onlyContractCustomer(msg.sender) 
+        external onlyContractCustomer(msg.sender) nonReentrant
     {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
 
         // Now take care of wiping out secrets so they are undecryptable forever
         // User will appear 'dead' but their payload will never be decryptable
-        bs.activePolicies[msg.sender].mkh = keccak256(abi.encodePacked(Y3K));
-        bs.activePolicies[msg.sender].dkh = keccak256(abi.encodePacked(Y3K));
+        bs.activePolicies[msg.sender].mkh = keccak256(abi.encodePacked(LibBqETH.Y3K));
+        bs.activePolicies[msg.sender].dkh = keccak256(abi.encodePacked(LibBqETH.Y3K));
 
         uint256 prev = bs.activeChainHead[msg.sender];
         uint128[] memory times = getCurrentRemainingTimes(prev);
@@ -380,7 +394,8 @@ contract BqETHPublish is ReentrancyGuard {
         // when the last Puzzle reward has been claimed.
     }
 
-    function getCurrentRemainingTimes(uint256 start_pid) internal view returns (uint128[] memory times) {
+    function getCurrentRemainingTimes(uint256 start_pid) 
+        private view returns (uint128[] memory times) {
                 
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         // Memory arrays are not resizable, and we don't want this stuff in storage
@@ -388,7 +403,7 @@ contract BqETHPublish is ReentrancyGuard {
         uint index = 0;
         // collect all puzzle times from the active puzzle down to the end of the chain
         uint256 pid_to_check = start_pid;
-        while (pid_to_check > Y3K) {
+        while (pid_to_check > LibBqETH.Y3K) {
             uint256 next_pid = bs.userPuzzles[pid_to_check].sdate;
             if (bs.userPuzzles[pid_to_check].x.length != 0) {
                 tarray[index] = bs.userPuzzles[pid_to_check].t;

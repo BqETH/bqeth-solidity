@@ -71,12 +71,12 @@ contract BqETH is ReentrancyGuard {
         public
         view
         returns (
-            uint256 pid, // The puzzle key
+            uint256 pid,    // The puzzle key
             address creator, // The puzzle creator
             bytes memory N, // The modulus
             bytes memory x, // The start value
-            uint256 t, // The time parameter
-            bytes32 h3, // H3 Hash value of the solution
+            uint256 t,      // The time parameter
+            bytes32 h3,     // H3 Hash value of the solution
             uint256 reward, // The amount that should be dispensed
             uint256 sdate
         )

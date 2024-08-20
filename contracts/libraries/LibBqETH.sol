@@ -2,9 +2,6 @@
 pragma solidity ^0.8.0;
 import { LibDiamond } from "hardhat-deploy/solc_0.8/diamond/libraries/LibDiamond.sol";
 
-
-uint64 constant Y3K = 32503680000000;
-
 struct PuzzleChains {
     Chain[] chains;
 }
@@ -40,7 +37,8 @@ library LibBqETH {
     bytes32 constant BQETH_PUZZLES = keccak256("bqeth.puzzles.storage");  // Diamond storage
     bytes32 constant BQETH_METRICS = keccak256("bqeth.metrics.storage");  // Diamond storage
     bytes32 constant BQETH_ADMIN   = keccak256("bqeth.admin.storage");    // Diamond storage
-    string constant version = "BqETH Version 3.0";
+    string public constant version = "BqETH Version 3.0";
+    uint64 public constant Y3K = 32503680000000;
 
     event PuzzleInactive(
         uint256 pid,
