@@ -39,6 +39,7 @@ library LibBqETH {
     bytes32 constant BQETH_ADMIN   = keccak256("bqeth.admin.storage");    // Diamond storage
     string public constant version = "BqETH Version 3.0";
     uint64 public constant Y3K = 32503680000000;
+    bytes32 public constant TESTNK = keccak256(hex"36da36ef00062a5b988efd0df129f8b8bd4a56d143dbbb3633e6729b7099238623f2115aaad348c64dec719cb66f99add07eea357a69f1867bdec91895e3c737fd8579b0598f660cf6ddd95426aab89afcc062e83fb5f5e43ef54f828c5ca1cefdc083b2497641b0ddfe3d5cc86bc84c7b47714c4cfe96e75b4d9d03cbaa4c9b017c20d28ddd796079f7c3c5de3916329be7fcee168c129180225ad8494520ce53348936dbd6060de15c994df2d8d47d26d1919fee4d405f42f0868962168a23912b3a198abf7b5b600c75868f3a66ae5bd61217867add8618e049992abe8a0464c5d9cad69c0c57a84d14912ebb22f393fdcba2ba0eaf02fb10329e38224ea3");
 
     event PuzzleInactive(
         uint256 pid,

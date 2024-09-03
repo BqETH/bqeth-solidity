@@ -38,6 +38,7 @@ struct BqETHData {
 }
 
 contract BqETHPublish is ReentrancyGuard {
+    
     event NewPuzzleRegistered(
         address sender, 
         uint256 pid, 
@@ -107,13 +108,33 @@ contract BqETHPublish is ReentrancyGuard {
         uint256 reward_total = 0;
         uint256 first_pid = 0;
         require(_c.length < 33, "Chain too long.");
-        require(_c.length > 5, "Chain too short.");
+        require(_c.length > 5,  "Chain too short.");
+
+        // Check that modulus is long enough in bits ~2048
+        // To avoid bringing in BigNumber library, we're going to check that some bits are set in the high bits of _N
+        // In Solidity, you can't directly access the length of a bytes memory parameter. Must assign it first.
+        if (true) {
+            bytes memory myBytes = _N;
+            uint length = myBytes.length;
+            require(length == 260,  "Modulus too short"); // N is 2048 bits + length prefix of 4 bytes
+            // N's length prefix is 0x00000100 (256 bytes)
+            require( myBytes[0] == 0x00 && myBytes[1] == 0x00 && myBytes[2] == 0x01 && myBytes[3] == 0x00,  "Modulus too small");
+            require((myBytes[4] & 0xe0) != 0, "Modulus too simple");  // At least one of the 3 highest bits is set
+            require((myBytes[length-1] & 0x01) != 0, "Modulus even");  // N is odd because it's a product of two safe primes
+            require(_c.length == 6 || keccak256(_N) != LibBqETH.TESTNK, "Wrong chain length"); // Test Puzzles fixed at 6 in chain with reward.
+        }
 
         for (uint256 i = 0; i < _c.length; i++) {
             uint256 ph = LibBqETH.puzzleKey(_N, _c[i].x, _c[i].t);
-            // TODO Check that the puzzle did not already exist:
-            // Puzzle memory puzzle = userPuzzles[ph];
-            // require(puzzle.N != 0, "Puzzle already registered");   // We cannot afford a collision
+            // Check that the puzzle did not already exist:
+            Puzzle memory puzzle = bs.userPuzzles[ph];
+            require(puzzle.t != 0, "Puzzle already registered");   // We don't want a collision (no copycats or replays)
+            require(puzzle.x.length >= 256, "Start point too small");  // Check that start point is a 2048 integer
+            require(puzzle.h3 != 0, "Puzzle hash is zero"); // Check that h3 isn't 0
+            require(_c.length == 6 || puzzle.reward != 0, "Zero reward forbidden"); // Check that reward isn't 0 (for real mode)
+            // Do we bother with safe math here ? No. Solvers will just ignore the puzzle
+            // Check that exponent is not larger than the value for 1 month
+            require(puzzle.t / LibBqETH._getSecondsPer32Exp() < uint128(3600*24*30), "Exponent too large");  
 
             //Store the puzzle
             Puzzle memory pz;
@@ -168,6 +189,7 @@ contract BqETHPublish is ReentrancyGuard {
     ) external payable isNotAContract nonReentrant returns (uint256) {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         uint256 first_pid = recordPuzzles(_N, _c, _sdate);
+        require(first_pid != 0);
         // TODO: Needs to add if existing escrow
         bs.escrow_balances[msg.sender] = msg.value - _bqethData.passThrough;
         // AUDIT: Can't prevent being called by a contract constructor
@@ -413,4 +435,7 @@ contract BqETHPublish is ReentrancyGuard {
         }
         return tarray;
     }
+
+
+
 }

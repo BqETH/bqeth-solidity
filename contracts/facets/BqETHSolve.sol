@@ -219,4 +219,5 @@ contract BqETHSolve is ReentrancyGuard {
             delete bs.activePolicies[puzzle.creator];
         }
     }
+
 }
