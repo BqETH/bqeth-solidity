@@ -125,6 +125,7 @@ contract BqETHDecrypt is ReentrancyGuard {
             delete bs.userPuzzles[_pid];
             delete bs.claimData[_pid];
             delete bs.claimBlockNumber[_pid];
+            
             return _pid;
         } else {
             console.log("Puzzle must be claimed first.");

@@ -374,7 +374,8 @@ contract BqETHPublish is ReentrancyGuard {
                 }
                 pid_to_check = next_pid;
             }
-            // pid_to_check is now sdate for the last puzzle in the chain
+            // Move sdate to the last active puzzle: pid_to_check at the end of the loop is sdate for the chain
+            // and we assign it to the last new active puzzle so it is terminated properly
             bs.userPuzzles[last_active].sdate = pid_to_check;
         }
 
@@ -436,6 +437,71 @@ contract BqETHPublish is ReentrancyGuard {
         return tarray;
     }
 
+    // This function checks whether any chain belonging to user _creator has been unclaimed for more than  
+    // EXPIRE times the amount of time expected and deleted it, sending rewards to BqETH.  
+    function invalidateChain(address _creator) external isNotAContract nonReentrant   
+    {
+        LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
 
+        // Now take care of wiping out secrets so they are undecryptable forever
+        // User will appear 'dead' but their payload will never be decryptable
+        bs.activePolicies[msg.sender].mkh = keccak256(abi.encodePacked(LibBqETH.Y3K));
+        bs.activePolicies[msg.sender].dkh = keccak256(abi.encodePacked(LibBqETH.Y3K));
 
+        uint256 timeleft = 0;
+        // Collect all puzzle times from the active puzzle down to the end of the chain
+        uint128 sp32e = LibBqETH._getSecondsPer32Exp();
+        uint128 refund  = 0;
+
+        // Traverse all the chains (some of the user's chains may be legitimate at first)
+        Chain[] memory mychains = bs.userChains[_creator].chains;
+        uint chainsLength = mychains.length;
+        for (uint i = 0; i < chainsLength; i++) {
+            // Within each chain, count all puzzles to see if the whole chain has expired
+            timeleft = 0;
+            Chain memory c = mychains[i];
+            uint256 pid_to_check = c.head;
+            while (pid_to_check > LibBqETH.Y3K) {    // There is a next puzzle
+                uint256 next_pid = bs.userPuzzles[pid_to_check].sdate;
+                uint128 exp = bs.userPuzzles[pid_to_check].t;
+                timeleft += (sp32e * exp);
+                pid_to_check = next_pid;
+            }
+            // Last one is sdate, convert since original sdate is in milliseconds and block time in seconds
+            uint256 start_date = pid_to_check / 1000;
+
+            // If the time elapsed since sdate is greater than EXPIRE times the estimated length of the chain
+            if ((block.timestamp - start_date) > (LibBqETH.EXPIRE* timeleft)) {
+                uint256 pid_to_clear = mychains[i].head;
+                // Delete the puzzles
+                while (pid_to_clear > LibBqETH.Y3K) {    // There is a next puzzle
+                    uint256 next_pid = bs.userPuzzles[pid_to_clear].sdate;
+                    pid_to_clear = next_pid;
+                    if (bs.userPuzzles[pid_to_check].x.length != 0) {
+                        // Add its reward to the refund
+                        refund += bs.userPuzzles[pid_to_clear].reward;
+                    }
+                    // Let the farmers know
+                    emit LibBqETH.PuzzleInactive(
+                        pid_to_clear,
+                        "","Pruned","","",
+                        bs.userPuzzles[pid_to_clear].sdate
+                    );
+                    // Delete it
+                    delete bs.userPuzzles[pid_to_clear];
+                }
+                delete bs.userChains[_creator].chains[i];
+            }
+        }
+
+        // Prune previous chains and refund the user if necessary
+        if (refund > 0) {
+            // Send _passthrough Funds to BqETH
+            address bqethServices = LibBqETH._getBqETHServicesAddress();
+            // Send reward to BqETH
+            (bool success, ) = bqethServices.call{value: refund}("");
+            require(success, "Refund failed.");
+            bs.escrow_balances[msg.sender] -= refund;
+        }
+    }
 }
