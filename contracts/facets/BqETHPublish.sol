@@ -116,10 +116,8 @@ contract BqETHPublish is ReentrancyGuard {
         if (true) {
             bytes memory myBytes = _N;
             uint length = myBytes.length;
-            require(length == 260,  "Modulus too short"); // N is 2048 bits + length prefix of 4 bytes
-            // N's length prefix is 0x00000100 (256 bytes)
-            require( myBytes[0] == 0x00 && myBytes[1] == 0x00 && myBytes[2] == 0x01 && myBytes[3] == 0x00,  "Modulus too small");
-            require((myBytes[4] & 0xe0) != 0, "Modulus too simple");  // At least one of the 3 highest bits is set
+            require(length == 256,  "Modulus too short"); // N is 2048 bits 
+            require((myBytes[0] & 0xe0) != 0, "Modulus too simple");  // At least one of the 3 highest bits is set
             require((myBytes[length-1] & 0x01) != 0, "Modulus even");  // N is odd because it's a product of two safe primes
             require(_c.length == 6 || keccak256(_N) != LibBqETH.TESTNK, "Wrong chain length"); // Test Puzzles fixed at 6 in chain with reward.
         }
@@ -127,14 +125,8 @@ contract BqETHPublish is ReentrancyGuard {
         for (uint256 i = 0; i < _c.length; i++) {
             uint256 ph = LibBqETH.puzzleKey(_N, _c[i].x, _c[i].t);
             // Check that the puzzle did not already exist:
-            Puzzle memory puzzle = bs.userPuzzles[ph];
-            require(puzzle.t != 0, "Puzzle already registered");   // We don't want a collision (no copycats or replays)
-            require(puzzle.x.length >= 256, "Start point too small");  // Check that start point is a 2048 integer
-            require(puzzle.h3 != 0, "Puzzle hash is zero"); // Check that h3 isn't 0
-            require(_c.length == 6 || puzzle.reward != 0, "Zero reward forbidden"); // Check that reward isn't 0 (for real mode)
-            // Do we bother with safe math here ? No. Solvers will just ignore the puzzle
-            // Check that exponent is not larger than the value for 1 month
-            require(puzzle.t / LibBqETH._getSecondsPer32Exp() < uint128(3600*24*30), "Exponent too large");  
+            Puzzle memory previous = bs.userPuzzles[ph];
+            require(previous.t == 0, "Puzzle already registered");   // We don't want a collision (no copycats or replays)
 
             //Store the puzzle
             Puzzle memory pz;
@@ -145,6 +137,13 @@ contract BqETHPublish is ReentrancyGuard {
             pz.sdate = (i == _c.length - 1) ? _sdate : _c[i].pid; // Only last puzzle gets sdate
             pz.h3 = _c[i].h3;
             pz.reward = _c[i].reward;
+
+            require(pz.x.length >= 254, "Start point too small");  // Check that start point is a 2048 integer
+            require(pz.h3 != 0, "Puzzle hash is zero"); // Check that h3 isn't 0
+            require(_c.length == 6 || pz.reward != 0, "Zero reward forbidden"); // Check that reward isn't 0 (for real mode)
+            // Do we bother with safe math here ? No. Solvers will just ignore the puzzle
+            // Check that exponent is not larger than the value for 1 month
+            require(pz.t / LibBqETH._getSecondsPer32Exp() < uint128(3600*24*30), "Exponent too large");
 
             // Notice we store the puzzle at a hash we calculate, pointing to a pid we were given
             // which must match, if the client uses this contract's puzzleKey() with correct values
@@ -194,7 +193,10 @@ contract BqETHPublish is ReentrancyGuard {
         bs.escrow_balances[msg.sender] = msg.value - _bqethData.passThrough;
         // AUDIT: Can't prevent being called by a contract constructor
         require(msg.sender != address(0), "No calls from other contracts"); 
-    //TODO: require(msg.value > 10);  // Minimum amount for puzzles (5 USD), to prevent DDOS on mainnet
+    // Minimum amount for puzzles (5 USD), to prevent DDOS on mainnet
+    //TODO: require(msg.value > 10);  
+        // Make sure the start date preceeds the block (no thwarting the expiration check)
+        require(block.timestamp > _sdate/1000, "Puzzle in the future");
 
         bs.activePolicies[msg.sender] = ActivePolicy(
             msg.sender,
@@ -442,6 +444,7 @@ contract BqETHPublish is ReentrancyGuard {
     function invalidateChain(address _creator) external isNotAContract nonReentrant   
     {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
+        LibDiamond.enforceIsContractOwner();
 
         // Now take care of wiping out secrets so they are undecryptable forever
         // User will appear 'dead' but their payload will never be decryptable
