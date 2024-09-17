@@ -46,12 +46,30 @@ contract BqETHManagement is ReentrancyGuard {
         LibBqETH._setBqETHServicesAddress(bqethServicesAddress);
     }
 
-// AUDIT : Use a two-step
-// address change to _governance address separately using setter functions: 1)
-// Approve a new address as a pendingOwner 2) A transaction from the
-// pendingOwner (TracerDAO) address claims the pending ownership change.
+// AUDIT : Use a two-step address change to _governance address separately using setter functions.  
 // This mitigates risk because if an incorrect address is used in step (1) then it
 // can be fixed by re-approving the correct address. Only after a correct
-// address is used in step (1) can step (2) happen and complete the
-// address/ownership change.
+// address is used in step (1) can step (2) happen and complete the ownership change.
+// BqETH will use a 3 step: 
+
+    // 1) Approve a new address as a pendingOwner
+    function setNewOwnerCandidate(address newOwner) external nonReentrant {
+        LibDiamond.enforceIsContractOwner();
+        LibBqETH._setNewOwnerCandidate(newOwner);
+    }
+
+    // 2) A transaction from the pendingOwner address claims the pending ownership change.
+    function confirmNewOwnerCandidate() external nonReentrant {
+        // Must be called BY the candidate
+        address candidate = LibBqETH._getNewOwnerCandidate();
+        require(msg.sender == candidate, "Only owner candidate");
+        LibBqETH._setConfirmedCandidate();
+    }
+
+    // 3) Current owner must confirm the ownership transfer
+    function finalizeOwnerTransfer() external nonReentrant() {
+        // Only current owner can confirm transfer
+        LibDiamond.enforceIsContractOwner();
+        LibBqETH._finalizeNewOwner();
+    }
 }

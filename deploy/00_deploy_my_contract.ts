@@ -1,3 +1,4 @@
+import { Contract } from 'ethers';
 // deploy/00_deploy_my_contract.ts
 
 import {HardhatRuntimeEnvironment} from 'hardhat/types';
@@ -35,6 +36,18 @@ const deployDiamondFunc: DeployFunction = async function (hre: HardhatRuntimeEnv
       autoMine: true,
       log: true,
     });
+
+    const libDiamondEtherscan = await deployments.deploy("LibDiamondEtherscan", {
+      from: deployer,
+      autoMine: true,
+      log: true,
+    });
+
+    const dummyImplementation = await deployments.deploy("DummyDiamondImplementation", {
+      from: deployer,
+      autoMine: true,
+      log: true,
+    });
   
     const diamondOptions: DiamondOptions = {
       from: deployer,
@@ -46,7 +59,8 @@ const deployDiamondFunc: DeployFunction = async function (hre: HardhatRuntimeEnv
         BigNumbers: bigNumberLibrary.address,
         PietrzakVerifier: pietrzakVerifier.address,
         LibBqETH: bqethStorageLibrary.address,
-        MerkleTreeVerifier: merkleTreeVerifier.address
+        MerkleTreeVerifier: merkleTreeVerifier.address,
+        LibDiamondEtherscan: libDiamondEtherscan.address
       },
       facets: [
         'IERC20MetaDataStub',
@@ -54,13 +68,35 @@ const deployDiamondFunc: DeployFunction = async function (hre: HardhatRuntimeEnv
         'BqETHPublish',
         'BqETHSolve',
         'BqETHDecrypt',
-        'BqETHManagement'
+        'BqETHManagement',
+        'DiamondEtherscanFacet',
       ],
       defaultOwnershipFacet: true,
       defaultCutFacet: true,
     };
   
-    await diamond.deploy('BqETHDiamond', diamondOptions)
+    const BqETHDiamond = await diamond.deploy('BqETHDiamond', diamondOptions);
+    console.log("BqETH Diamond deployed at: ", BqETHDiamond.address);
+
+    const setSecp32ExpTx = await deployments.execute('BqETHDiamond',
+        {from: deployer, log: true},
+        'setSecondsPer32Exp',"118524"
+    );
+    const setRewardPerDayTx = await deployments.execute('BqETHDiamond',
+      {from: deployer, log: true},
+      'setRewardPerDay',"1000000001"
+    );
+
+    // We have a dummy implementation contract (not facet)
+    // and a DiamondEtherscan facet supporting ERC-1967 to 
+    // allow Etherscan to expose out facet methods, but
+    // the DiamondEtherscanFacet needs to point to the dummy contract 
+
+    const setImplementationTx = await deployments.execute('BqETHDiamond',
+      {from: deployer, log: true},
+      'setDummyImplementation',dummyImplementation.address
+    );
+
   };
   
 // 'all' here is to indicate that's all of the contracts, for tests that wait for 

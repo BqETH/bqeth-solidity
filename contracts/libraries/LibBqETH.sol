@@ -82,6 +82,8 @@ library LibBqETH {
 
     struct BqETHAdmin {
         address bqethServices;                // Address for BqETH Services Pass-Through
+        address ownerCandidate;               // Address for new candidate owner
+        address confirmedCandidate;           // Address of confirmed candidate owner
     }
 
     function bqethMetrics() public pure returns (BqETHMetrics storage bms) {
@@ -289,7 +291,7 @@ library LibBqETH {
     }
 
     function _getBqETHServicesAddress() internal view 
-    returns (address bqethServices) {
+        returns (address bqethServices) {
         BqETHAdmin storage bas = bqethAdmin();
         address bqethSvc = bas.bqethServices;
         if (bqethSvc == address(0x0)) {
@@ -299,5 +301,50 @@ library LibBqETH {
             return bqethSvc;
             
         }
+    }
+
+    // Support for 3 Step Ownership Change 
+    function _setNewOwnerCandidate(address newCandidate) internal {
+        LibDiamond.enforceIsContractOwner();
+        BqETHAdmin storage bas = bqethAdmin();
+        bas.ownerCandidate = newCandidate;
+    }
+
+    function _getNewOwnerCandidate() internal view 
+        returns (address candidate) {
+        BqETHAdmin storage bas = bqethAdmin();
+        address ownerCandidate = bas.ownerCandidate;
+        if (ownerCandidate == address(0x0)) {
+            return LibDiamond.contractOwner();
+        }
+        else {
+            return ownerCandidate;
+            
+        }
+    }
+
+    function _setConfirmedCandidate() internal {
+        BqETHAdmin storage bas = bqethAdmin();
+        require(msg.sender == bas.ownerCandidate, "Only owner candidate");
+        bas.confirmedCandidate = bas.ownerCandidate;
+    }
+
+    function _getConfirmedCandidate() internal view 
+        returns (address candidate) {
+        BqETHAdmin storage bas = bqethAdmin();
+        address ownerCandidate = bas.ownerCandidate;
+        if (ownerCandidate == address(0x0)) {
+            return LibDiamond.contractOwner();
+        }
+        else {
+            return ownerCandidate;
+            
+        }
+    }
+
+    function _finalizeNewOwner() internal {
+        LibDiamond.enforceIsContractOwner();
+        BqETHAdmin storage bas = bqethAdmin();
+        LibDiamond.setContractOwner(bas.confirmedCandidate);
     }
 }
