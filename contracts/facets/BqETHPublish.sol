@@ -189,12 +189,12 @@ contract BqETHPublish is ReentrancyGuard {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         uint256 first_pid = recordPuzzles(_N, _c, _sdate);
         require(first_pid != 0);
-        // TODO: Needs to add if existing escrow
+
         bs.escrow_balances[msg.sender] = msg.value - _bqethData.passThrough;
         // AUDIT: Can't prevent being called by a contract constructor
         require(msg.sender != address(0), "No calls from other contracts"); 
-    // Minimum amount for puzzles (5 USD), to prevent DDOS on mainnet
-    // require(msg.value > 10);  
+        // Minimum amount for puzzles (5 USD), to prevent DDOS on mainnet
+        require(msg.value >= 13000000000000000000);  
         // Make sure the start date preceeds the block (no thwarting the expiration check)
         require(block.timestamp > _sdate/1000, "Puzzle in the future");
 
