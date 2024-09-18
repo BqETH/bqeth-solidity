@@ -37,11 +37,10 @@ contract BqETHDecrypt is ReentrancyGuard {
     ) external isNotAContract returns (uint256) {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         // Force execution of claimPuzzle and claimReward to happen in different blocks
-        // Look up the puzzle
         Puzzle memory puzzle = bs.userPuzzles[_pid];
         ActivePolicy memory policy = bs.activePolicies[puzzle.creator];
 
-        // Accept a claim only if farmer can demonstrate they know H1 and X2 which hash to mkH
+        // Accept a claim only if solver can demonstrate they know H1 and X2 which hash to mkH
         bytes memory b = abi.encodePacked(_x2, _h1);
         console.log(
             "Claiming decryption from Puzzle:",
@@ -52,8 +51,7 @@ contract BqETHDecrypt is ReentrancyGuard {
             sha256(b) == policy.mkh,
             "Commitment must match message kit stamp."
         );
-        // Record the farmer who has committed to the solution hash
-        // TODO: Add a condition that the new claiming block must be 20+ than the previous one if any
+        // Record the solver who has committed to the solution hash
         bs.claimBlockNumber[_pid] = block.number;
         bs.claimData[_pid] = msg.sender;
         return _pid;
@@ -71,18 +69,15 @@ contract BqETHDecrypt is ReentrancyGuard {
             bs.claimBlockNumber[_pid] < block.number,
             "Must wait one block before claiming decryption reward."
         );
-        // Look up the puzzle
         Puzzle memory puzzle = bs.userPuzzles[_pid];
         console.log(
             "Claiming decryption from Puzzle:",
             LibBqETH.toHexString(_pid)
         );
-        // console.log("Puzzle.x:");
-        // console.logBytes(puzzle.x);
 
         // Inactive puzzle only, reward must be claimed separately to verify proof
         if (BigNumbers.isZero(puzzle.x)) {
-            // Must be the same farmer that committed the solution first
+            // Must be the same solver that committed the solution first
             require(
                 bs.claimData[_pid] == msg.sender,
                 "Original decryptor required"
@@ -154,7 +149,7 @@ contract BqETHDecrypt is ReentrancyGuard {
 
         // Inactive puzzle only, reward must be claimed separately to verify proof
         if (BigNumbers.isZero(puzzle.x)) {
-            // Must be the same farmer that committed the solution first
+            // Must be the same solver that committed the solution first
             require(
                 bs.claimData[_pid] == msg.sender,
                 "Original decrypter required"
@@ -185,7 +180,6 @@ contract BqETHDecrypt is ReentrancyGuard {
                 "Decrypted keywords must match commitment."
             );
 
-            // AUDIT: We should also verify the new CID using verifyIPFS library
             emit decryptionRewardClaimed(
                 _pid,
                 puzzle.creator,

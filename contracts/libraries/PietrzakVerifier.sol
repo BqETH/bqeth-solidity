@@ -9,7 +9,7 @@ library PietrzakVerifier {
         BigNumber memory _y,
         BigNumber memory _u
     ) internal pure returns (uint8) {
-        // Farmers use sha256 (Sha-2) and so do we
+        // Solvers use sha256 (Sha-2) and so do we
         // And they use the proper big endian byte configuration of the integers
         // s = (x.to_bytes(int_size, "big", signed=False) + y.to_bytes(int_size, "big", signed=False) + μ.to_bytes(int_size, "big", signed=False))
         // b = hashlib.sha256(s).digest()

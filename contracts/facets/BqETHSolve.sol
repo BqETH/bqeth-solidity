@@ -39,11 +39,10 @@ contract BqETHSolve is ReentrancyGuard {
         Puzzle memory puzzle = bs.userPuzzles[_pid];
         console.log("Claiming puzzle:", LibBqETH.toHexString(_pid));
 
-        // Accept a claim only if farmer can demonstrate they know H1 and X2 which hash to H3
+        // Accept a claim only if solver can demonstrate they know H1 and X2 which hash to H3
         bytes memory b = abi.encode(_x2, _h1);
         require(sha256(b) == puzzle.h3, "Commitment must match puzzle stamp.");
-        // Record the farmer who has committed to the solution hash        
-        // TODO: Add a condition that the new claiming block must be 20+ than the previous one if any
+        // Record the solver who has committed to the solution hash        
         bs.claimBlockNumber[_pid] = block.number;
         bs.claimData[_pid] = msg.sender;
         return _pid;
@@ -85,7 +84,7 @@ contract BqETHSolve is ReentrancyGuard {
 
         if (!BigNumbers.isZero(puzzle.x)) {
             // Valid and active puzzle
-            // Must be the same farmer that committed the solution first
+            // Must be the same solver that committed the solution first
             require(
                 bs.claimData[_pid] == msg.sender,
                 "Original farmer required"

@@ -32,7 +32,7 @@ struct PayloadData {
 }
 
 struct BqETHData {
-    uint128 passThrough;   // Pre-paid subscription amount
+    uint128 passThrough;  // Pre-paid subscription amount
     uint64 servicesAmt;   // Services escrow
     string notifications; // BqETH encrypted Notification payload
 }
@@ -72,7 +72,7 @@ contract BqETHPublish is ReentrancyGuard {
         uint128 refund
     );
 
-    //AUDIT: Not virtual to prevent derived contracts from altering this
+    // Not virtual to prevent derived contracts from altering this
     modifier onlyContractCustomer(address _user) {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         Puzzle memory puzzle = bs.userPuzzles[bs.activeChainHead[_user]];
@@ -103,7 +103,7 @@ contract BqETHPublish is ReentrancyGuard {
         bytes memory _N,
         ChainData[] memory _c,
         uint256 _sdate
-    ) private returns (uint256) {  //TODO: AUDIT: is private sufficient to prevent DDOS from a derived contract ?
+    ) private returns (uint256) {  
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         uint256 reward_total = 0;
         uint256 first_pid = 0;
@@ -128,7 +128,7 @@ contract BqETHPublish is ReentrancyGuard {
             Puzzle memory previous = bs.userPuzzles[ph];
             require(previous.t == 0, "Puzzle already registered");   // We don't want a collision (no copycats or replays)
 
-            //Store the puzzle
+            // Store the puzzle
             Puzzle memory pz;
             pz.creator = msg.sender;
 
@@ -194,7 +194,7 @@ contract BqETHPublish is ReentrancyGuard {
         // AUDIT: Can't prevent being called by a contract constructor
         require(msg.sender != address(0), "No calls from other contracts"); 
     // Minimum amount for puzzles (5 USD), to prevent DDOS on mainnet
-    //TODO: require(msg.value > 10);  
+    // require(msg.value > 10);  
         // Make sure the start date preceeds the block (no thwarting the expiration check)
         require(block.timestamp > _sdate/1000, "Puzzle in the future");
 
@@ -261,9 +261,6 @@ contract BqETHPublish is ReentrancyGuard {
         uint128 refund = pruneChains(msg.sender);
         if (refund > 0) {
             (bool success, ) = msg.sender.call{value: refund}("");
-            // AUDIT: If called by a contract this can prevent the cleanup that happens as part of the Tx
-            // and could cause bloat in the contract. Investigate if other contracts could submit worthless puzzles
-            // and intentionally refuse the transfer of funds. 
             // AUDIT: This is also flagged as a re-entrency problem because of the external call but isn't actually a problem.
             require(success, "Refund failed.");
         }

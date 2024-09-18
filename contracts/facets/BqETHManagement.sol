@@ -46,7 +46,7 @@ contract BqETHManagement is ReentrancyGuard {
         LibBqETH._setBqETHServicesAddress(bqethServicesAddress);
     }
 
-// AUDIT : Use a two-step address change to _governance address separately using setter functions.  
+// Use a two-step address change to _governance address separately using setter functions.  
 // This mitigates risk because if an incorrect address is used in step (1) then it
 // can be fixed by re-approving the correct address. Only after a correct
 // address is used in step (1) can step (2) happen and complete the ownership change.

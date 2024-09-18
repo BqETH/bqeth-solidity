@@ -105,8 +105,6 @@ contract DummyDiamondImplementation {
 
    function owner() external view returns (address  owner_) {}
 
-   function transferOwnership(address  _newOwner) external {}
-
    function getActiveChain(address  _user) external view returns (Tuple8358134[] memory chain) {}
 
    function getActivePolicy(address  _user) external view returns (string memory ritualId, bytes32  mkh, bytes32  dkh) {}
@@ -135,5 +133,4 @@ contract DummyDiamondImplementation {
 
    function replaceNotification(string memory _notification) external {}
 
-   function setWhistleBlower(address  user, bool  wb) external {}
 }
