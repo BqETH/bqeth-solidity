@@ -6,7 +6,6 @@ import {DeployFunction, DiamondOptions, ExtendedArtifact, FacetCutAction, FacetO
 import 'hardhat-deploy';
 import 'hardhat-deploy-ethers';
 
-
 // This works with  yarn hardhat deploy --network localhost --tags BqETHDiamond [--reset]
 // yarn hardhat clean
 // yarn hardhat node --no-deploy
@@ -14,38 +13,45 @@ const deployDiamondFunc: DeployFunction = async function (hre: HardhatRuntimeEnv
     const {getNamedAccounts, deployments, getChainId, getUnnamedAccounts} = hre;
     const {diamond} = deployments;
     const {deployer, diamondAdmin} = await getNamedAccounts();
+    console.log(deployer);
 
     const bigNumberLibrary = await deployments.deploy("BigNumbers", {
       from: deployer,
       autoMine: true,
+      waitConfirmations: 6,
       log: true,
     });
     const merkleTreeVerifier = await deployments.deploy("MerkleTreeVerifier", {
       from: deployer,
       autoMine: true,
+      waitConfirmations: 6,
       log: true,
     });
     const pietrzakVerifier = await deployments.deploy("PietrzakVerifier", {
       from: deployer,
       autoMine: true,
+      waitConfirmations: 6,
       log: true,
     });
 
     const bqethStorageLibrary = await deployments.deploy("LibBqETH", {
       from: deployer,
       autoMine: true,
+      waitConfirmations: 6,
       log: true,
     });
 
     const libDiamondEtherscan = await deployments.deploy("LibDiamondEtherscan", {
       from: deployer,
       autoMine: true,
+      waitConfirmations: 6,
       log: true,
     });
 
     const dummyImplementation = await deployments.deploy("DummyDiamondImplementation", {
       from: deployer,
       autoMine: true,
+      waitConfirmations: 6,
       log: true,
     });
   
@@ -53,6 +59,7 @@ const deployDiamondFunc: DeployFunction = async function (hre: HardhatRuntimeEnv
       from: deployer,
       owner: diamondAdmin,
       autoMine: true,
+      waitConfirmations: 6,
       log: true,
       libraries: {
         // Library Names must match what the compiler expects

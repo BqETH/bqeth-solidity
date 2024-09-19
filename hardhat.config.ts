@@ -11,20 +11,7 @@ import { Wallet } from "@ethersproject/wallet";
 import { setupSafeDeployer } from "hardhat-safe-deployer";
 
 dotenv.config();
-const { INFURA_KEY, MNEMONIC, MNEMONIC_PATH, ETHERSCAN_API_KEY, SAFE_SERVICE_URL, DEPLOYER_SAFE } = process.env;
-
-setupSafeDeployer(
-  Wallet.fromMnemonic(MNEMONIC!!, MNEMONIC_PATH),
-  DEPLOYER_SAFE!!,
-  SAFE_SERVICE_URL
-)
-const DEFAULT_MNEMONIC =
-  "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
-  
-const sharedNetworkConfig: HttpNetworkUserConfig = {};
-  sharedNetworkConfig.accounts = {
-    mnemonic: MNEMONIC || DEFAULT_MNEMONIC,
-  };
+const { INFURA_KEY } = process.env;
 
 import yargs from "yargs";
 const argv = yargs
@@ -34,7 +21,7 @@ const argv = yargs
     })
     .help(false)
     .version(false).argv;
-if (["mainnet", "rinkeby", "kovan", "goerli"].includes(argv.network) && INFURA_KEY === undefined) {
+if (["mainnet", "rinkeby", "kovan", "goerli", "polygon-mainnet", "sepolia"].includes(argv.network) && INFURA_KEY === undefined) {
   throw new Error(
     `Could not find Infura key in env, unable to connect to network ${argv.network}`,
   );
@@ -45,12 +32,14 @@ if (["mainnet", "rinkeby", "kovan", "goerli"].includes(argv.network) && INFURA_K
 const config: HardhatUserConfig = {
   solidity: '0.8.20',
   paths: {
-    artifacts: './artifacts'
+    artifacts: './artifacts',
+    cache: "./cache",
+    sources: "./contracts",
+    tests: "./test",
   },
   namedAccounts: {
     deployer: 0,  // Needed for Amoy
-    diamondAdmin: 0,
-    // deployer: DEPLOYER_SAFE!!,
+    diamondAdmin: 0
   },
   networks: {
     hardhat: {
@@ -66,7 +55,6 @@ const config: HardhatUserConfig = {
       }
     },
     localhost: {
-      ...sharedNetworkConfig,
       chainId: 1337,
       allowUnlimitedContractSize: true,
       saveDeployments: true,
@@ -79,7 +67,6 @@ const config: HardhatUserConfig = {
       }
     },
     sepolia: {
-      ...sharedNetworkConfig,
       chainId: 11155111,
       live: true,
       saveDeployments: true,
@@ -91,7 +78,6 @@ const config: HardhatUserConfig = {
           : []
     },
     amoy: {
-      ...sharedNetworkConfig,
       chainId: 80002,
       live: true,
       saveDeployments: true,
@@ -100,6 +86,17 @@ const config: HardhatUserConfig = {
       accounts:
         process.env.TEST_ETH_ACCOUNT_PRIVATE_KEY !== undefined
           ? [process.env.TEST_ETH_ACCOUNT_PRIVATE_KEY]
+          : []
+    },
+    "polygon-mainnet": {
+      chainId: 137,
+      live: true,
+      saveDeployments: true,
+      deploy: [ 'deploy/' ],
+      url: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_ID}` || '',
+      accounts:
+        process.env.ETH_ACCOUNT_PRIVATE_KEY !== undefined
+          ? [process.env.ETH_ACCOUNT_PRIVATE_KEY]
           : []
     },
   },
