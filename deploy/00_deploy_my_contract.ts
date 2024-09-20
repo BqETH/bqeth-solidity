@@ -103,7 +103,7 @@ const deployDiamondFunc: DeployFunction = async function (hre: HardhatRuntimeEnv
       {from: deployer, log: true},
       'setDummyImplementation',dummyImplementation.address
     );
-
+    console.log("Deployment Finished.")
   };
   
 // 'all' here is to indicate that's all of the contracts, for tests that wait for 
