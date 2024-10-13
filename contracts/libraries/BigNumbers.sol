@@ -732,7 +732,7 @@ library BigNumbers {
                                                                               // new bitlen is max_bitlen+1.
                 }
         }
-        
+        // Check on this: https://github.com/firoorg/solidity-BigNumber/pull/18
 
         return (result, max_bitlen);
     }

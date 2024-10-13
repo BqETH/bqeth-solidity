@@ -117,7 +117,7 @@ contract BqETHPublish is ReentrancyGuard {
             bytes memory myBytes = _N;
             uint length = myBytes.length;
             require(length == 256,  "Modulus too short"); // N is 2048 bits 
-            require((myBytes[0] & 0xe0) != 0, "Modulus too simple");  // At least one of the 3 highest bits is set
+            require((myBytes[0] & 0xe0) != 0, "Modulus too simple");   // At least one of the 3 highest bits is set
             require((myBytes[length-1] & 0x01) != 0, "Modulus even");  // N is odd because it's a product of two safe primes
             require(_c.length == 6 || keccak256(_N) != LibBqETH.TESTNK, "Wrong chain length"); // Test Puzzles fixed at 6 in chain with reward.
         }
@@ -254,6 +254,10 @@ contract BqETHPublish is ReentrancyGuard {
         // Puzzle flip restricted to creator of the previous puzzle
         address previous = bs.userPuzzles[prev].creator;
         require(msg.sender == previous, "Only puzzle owner.");
+                // Minimum amount for puzzles (13 POL ~ 5 USD), to prevent DDOS on mainnet
+        require(msg.value >= 13000000000000000000);
+        // Make sure the start date preceeds the block (no thwarting the expiration check)
+        require(block.timestamp > _sdate/1000, "Puzzle in the future");
 
         uint128[] memory times = getCurrentRemainingTimes(prev);
 
