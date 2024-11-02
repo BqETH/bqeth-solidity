@@ -726,13 +726,12 @@ library BigNumbers {
             // be a's bit length or (a's bit length)+1, depending on carry bit.this is cheaper than calling bitLength.
             let msword := mload(add(result,0x20))                             // get most significant word of result
             // if(msword==1 || msword>>(max_bitlen % 256)==1):
-            if or( eq(msword, 1), eq(shr(mod(max_bitlen,256),msword),1) ) {
+            if or( eq(carry, 1), eq(shr(mod(max_bitlen,256),msword),1) ) {
                     max_bitlen := add(max_bitlen, 1)                          // if msword's bit length is 1 greater 
                                                                               // than max_bitlen, OR overflow occured,
                                                                               // new bitlen is max_bitlen+1.
                 }
         }
-        // Check on this: https://github.com/firoorg/solidity-BigNumber/pull/18
 
         return (result, max_bitlen);
     }
