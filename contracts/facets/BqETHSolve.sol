@@ -120,11 +120,6 @@ contract BqETHSolve is ReentrancyGuard {
                 require(success, "Transfer failed.");
 
                 bs.escrow_balances[puzzle.creator] -= puzzle.reward;
-                console.log(
-                    "Account Escrow balance:",
-                    puzzle.creator,
-                    bs.escrow_balances[puzzle.creator]
-                );
                 bs.userPuzzles[_pid].x = "";       // Set puzzle to inactive
                 // console.log("Zeroed Puzzle:", LibBqETH.toHexString(_pid));
                 bs.userPuzzles[_pid].reward = 0;   // Set reward to zero

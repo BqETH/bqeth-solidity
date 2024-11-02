@@ -441,7 +441,7 @@ contract BqETHPublish is ReentrancyGuard {
     }
 
     // This function checks whether any chain belonging to user _creator has been unclaimed for more than  
-    // EXPIRE times the amount of time expected and deleted it, sending rewards to BqETH.  
+    // EXPIRE times the amount of time expected and deletes it, sending rewards to BqETH.  
     function invalidateChain(address _creator) external isNotAContract nonReentrant   
     {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
