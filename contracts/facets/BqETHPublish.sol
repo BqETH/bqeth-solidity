@@ -273,7 +273,7 @@ contract BqETHPublish is ReentrancyGuard {
         
         uint256 first_pid = recordPuzzles(_N, _c, _sdate);
         // Add to the escrow total for the creator's address.
-        bs.escrow_balances[msg.sender] += msg.value - _bqethData.passThrough;
+        bs.escrow_balances[msg.sender] += (msg.value - refund - _bqethData.passThrough);
 
         // Handle BqETH Subscription payment
         if (_bqethData.passThrough > 0) {
