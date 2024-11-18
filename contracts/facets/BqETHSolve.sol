@@ -8,7 +8,7 @@ import "../libraries/PietrzakVerifier.sol";
 
 contract BqETHSolve is ReentrancyGuard {
     bytes32 immutable salt = "BqETH";
-    uint256 constant min_verification_reward = 447552447552444;
+    uint256 constant min_verification_reward = 77046549026003210;
 
     modifier isNotAContract() {
         require(!isAContract(msg.sender));  // Warning: will return false if the call is made from the constructor of a smart contract
@@ -119,7 +119,8 @@ contract BqETHSolve is ReentrancyGuard {
                 (bool success, ) = msg.sender.call{value: amount}("");
                 require(success, "Transfer failed.");
 
-                bs.escrow_balances[puzzle.creator] -= puzzle.reward;
+                require(bs.escrow_balances[puzzle.creator] >= amount, "Escrow Insufficient.");
+                bs.escrow_balances[puzzle.creator] -= amount;
                 bs.userPuzzles[_pid].x = "";       // Set puzzle to inactive
                 // console.log("Zeroed Puzzle:", LibBqETH.toHexString(_pid));
                 bs.userPuzzles[_pid].reward = 0;   // Set reward to zero
@@ -153,9 +154,9 @@ contract BqETHSolve is ReentrancyGuard {
                         puzzle.sdate    // This is a pid
                     );
                 }
+                delete bs.claimBlockNumber[_pid];
+                delete bs.claimData[_pid];
             }
-            delete bs.claimBlockNumber[_pid];
-            delete bs.claimData[_pid];
             return _pid;
         } else {
             console.log("Puzzle already claimed");

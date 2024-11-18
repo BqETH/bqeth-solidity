@@ -190,7 +190,7 @@ contract BqETHPublish is ReentrancyGuard {
         uint256 first_pid = recordPuzzles(_N, _c, _sdate);
         require(first_pid != 0);
 
-        bs.escrow_balances[msg.sender] = msg.value - _bqethData.passThrough;
+        bs.escrow_balances[msg.sender] = msg.value - _bqethData.passThrough - _bqethData.servicesAmt;
         // AUDIT: Can't prevent being called by a contract constructor
         require(msg.sender != address(0), "No calls from other contracts"); 
         // Minimum amount for puzzles (13 POL ~ 5 USD), to prevent DDOS on mainnet
@@ -273,7 +273,7 @@ contract BqETHPublish is ReentrancyGuard {
         
         uint256 first_pid = recordPuzzles(_N, _c, _sdate);
         // Add to the escrow total for the creator's address.
-        bs.escrow_balances[msg.sender] += (msg.value - refund - _bqethData.passThrough);
+        bs.escrow_balances[msg.sender] += (msg.value - refund - _bqethData.passThrough - _bqethData.servicesAmt);
 
         // Handle BqETH Subscription payment
         if (_bqethData.passThrough > 0) {

@@ -46,6 +46,11 @@ contract BqETHManagement is ReentrancyGuard {
         LibBqETH._setBqETHServicesAddress(bqethServicesAddress);
     }
 
+    function getEscrowBalance(address user) external view returns (uint256 escrow_balance) {
+        LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
+        return bs.escrow_balances[user];
+    }
+
 // Use a two-step address change to _governance address separately using setter functions.  
 // This mitigates risk because if an incorrect address is used in step (1) then it
 // can be fixed by re-approving the correct address. Only after a correct
