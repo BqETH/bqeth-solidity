@@ -84,6 +84,7 @@ library LibBqETH {
         address bqethServices;                // Address for BqETH Services Pass-Through
         address ownerCandidate;               // Address for new candidate owner
         address confirmedCandidate;           // Address of confirmed candidate owner
+        uint minValue;                        // minimum POL value for publishing chain
     }
 
     function bqethMetrics() public pure returns (BqETHMetrics storage bms) {
@@ -303,6 +304,26 @@ library LibBqETH {
         }
     }
 
+    function _setMinValue(uint minValue) internal {
+        LibDiamond.enforceIsContractOwner();
+        BqETHAdmin storage bas = bqethAdmin();
+        require(minValue > 0, "Min Value must be positive");
+        bas.minValue = minValue;
+    }
+
+    function _getMinValue() internal view 
+        returns (uint minV) {
+        BqETHAdmin storage bas = bqethAdmin();
+        uint minValue = bas.minValue;
+        if (minValue == 0) {
+            return 13000000000000000000;
+        }
+        else {
+            return minValue;
+            
+        }
+    }
+
     // Support for 3 Step Ownership Change 
     function _setNewOwnerCandidate(address newCandidate) internal {
         LibDiamond.enforceIsContractOwner();
@@ -347,4 +368,6 @@ library LibBqETH {
         BqETHAdmin storage bas = bqethAdmin();
         LibDiamond.setContractOwner(bas.confirmedCandidate);
     }
+
+
 }

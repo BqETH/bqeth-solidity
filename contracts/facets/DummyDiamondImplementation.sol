@@ -134,4 +134,8 @@ contract DummyDiamondImplementation {
    function replaceNotification(string memory _notification) external {}
 
    function getEscrowBalance(address user) external view returns (uint256 escrow_balance) {}
+
+   function getMinValue() public view returns (uint minValue) {}
+
+   function setMinValue(uint minValue) external {}
 }

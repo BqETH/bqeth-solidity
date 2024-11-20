@@ -46,6 +46,15 @@ contract BqETHManagement is ReentrancyGuard {
         LibBqETH._setBqETHServicesAddress(bqethServicesAddress);
     }
 
+    function getMinValue() public view returns (uint minValue) {
+        return LibBqETH._getMinValue();
+    }
+
+    function setMinValue(uint minValue) external nonReentrant {
+        LibDiamond.enforceIsContractOwner();
+        LibBqETH._setMinValue(minValue);
+    }
+
     function getEscrowBalance(address user) external view returns (uint256 escrow_balance) {
         LibBqETH.BqETHStorage storage bs = LibBqETH.bqethStorage();
         return bs.escrow_balances[user];

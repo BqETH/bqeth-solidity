@@ -194,7 +194,7 @@ contract BqETHPublish is ReentrancyGuard {
         // AUDIT: Can't prevent being called by a contract constructor
         require(msg.sender != address(0), "No calls from other contracts"); 
         // Minimum amount for puzzles (13 POL ~ 5 USD), to prevent DDOS on mainnet
-        require(msg.value >= 13000000000000000000);
+        require(msg.value >= LibBqETH.bqethAdmin().minValue);
         // Make sure the start date preceeds the block (no thwarting the expiration check)
         require(block.timestamp > _sdate/1000, "Puzzle in the future");
 
@@ -255,7 +255,7 @@ contract BqETHPublish is ReentrancyGuard {
         address previous = bs.userPuzzles[prev].creator;
         require(msg.sender == previous, "Only puzzle owner.");
                 // Minimum amount for puzzles (13 POL ~ 5 USD), to prevent DDOS on mainnet
-        require(msg.value >= 13000000000000000000);
+        require(msg.value >= LibBqETH.bqethAdmin().minValue);
         // Make sure the start date preceeds the block (no thwarting the expiration check)
         require(block.timestamp > _sdate/1000, "Puzzle in the future");
 

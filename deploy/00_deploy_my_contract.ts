@@ -85,13 +85,13 @@ const deployDiamondFunc: DeployFunction = async function (hre: HardhatRuntimeEnv
     const BqETHDiamond = await diamond.deploy('BqETHDiamond', diamondOptions);
     console.log("BqETH Diamond deployed at: ", BqETHDiamond.address);
 
-    const setSecp32ExpTx = await deployments.execute('BqETHDiamond',
-        {from: deployer, log: true},
-        'setSecondsPer32Exp',"118524"
-    );
+    // const setSecp32ExpTx = await deployments.execute('BqETHDiamond',
+    //     {from: deployer, log: true},
+    //     'setSecondsPer32Exp',"118524"
+    // );
     const setRewardPerDayTx = await deployments.execute('BqETHDiamond',
       {from: deployer, log: true},
-      'setRewardPerDay',"1000000001"
+      'setRewardPerDay',"2374430001"
     );
 
     // We have a dummy implementation contract (not facet)
