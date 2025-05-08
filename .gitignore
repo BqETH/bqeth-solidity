@@ -6,6 +6,7 @@
 
 # testing
 /coverage
+/test
 
 # production
 /build
@@ -29,3 +30,7 @@
 /types
 goerli
 scratch
+/node_modules
+/etherscan_requests
+/glibc-2.29
+/typechain-types
