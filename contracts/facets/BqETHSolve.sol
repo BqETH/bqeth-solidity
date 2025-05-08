@@ -3,12 +3,14 @@ pragma solidity >=0.8.19;
 
 import "hardhat/console.sol";
 import "../libraries/LibBqETH.sol";
+import "../libraries/BigNumbers.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../libraries/PietrzakVerifier.sol";
 
 contract BqETHSolve is ReentrancyGuard {
     bytes32 immutable salt = "BqETH";
     uint256 constant min_verification_reward = 77046549026003210;
+
 
     modifier isNotAContract() {
         require(!isAContract(msg.sender));  // Warning: will return false if the call is made from the constructor of a smart contract
@@ -42,6 +44,9 @@ contract BqETHSolve is ReentrancyGuard {
         // Accept a claim only if solver can demonstrate they know H1 and X2 which hash to H3
         bytes memory b = abi.encode(_x2, _h1);
         require(sha256(b) == puzzle.h3, "Commitment must match puzzle stamp.");
+        if (bs.claimBlockNumber[_pid] != 0) {
+            require(block.number > bs.claimBlockNumber[_pid]+5, "Must wait 5 blocks before claiming");
+        }
         // Record the solver who has committed to the solution hash        
         bs.claimBlockNumber[_pid] = block.number;
         bs.claimData[_pid] = msg.sender;
@@ -153,6 +158,12 @@ contract BqETHSolve is ReentrancyGuard {
                         "",
                         puzzle.sdate    // This is a pid
                     );
+                    // Change the start point of the next puzzle x1'=y0^x1 mod N
+                    bs.userPuzzles[puzzle.sdate].x = BigNumbers.modexp(
+                        BigNumbers.init(_y, false),
+                        BigNumbers.init(bs.userPuzzles[puzzle.sdate].x, false),
+                        BigNumbers.init(chain.N, false)
+                    ).val;
                 }
                 delete bs.claimBlockNumber[_pid];
                 delete bs.claimData[_pid];
