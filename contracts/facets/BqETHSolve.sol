@@ -103,10 +103,6 @@ contract BqETHSolve is ReentrancyGuard {
                 "Solution must match commitment."
             );
 
-            // Make sure the pid is valid for the _N in the chain
-            uint256 ph = LibBqETH.puzzleKey(chain.N, puzzle.x, puzzle.t);
-            require(ph == _pid, "Must claim a valid puzzle.");
-
             // Now we can bother to verify if the reward is high enough, and clean up the chain
             if (puzzle.reward < min_verification_reward ||
                 PietrzakVerifier.verifyProof(

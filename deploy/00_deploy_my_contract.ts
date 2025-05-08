@@ -89,20 +89,20 @@ const deployDiamondFunc: DeployFunction = async function (hre: HardhatRuntimeEnv
     //     {from: deployer, log: true},
     //     'setSecondsPer32Exp',"118524"
     // );
-    const setRewardPerDayTx = await deployments.execute('BqETHDiamond',
-      {from: deployer, log: true},
-      'setRewardPerDay',"2374430001"
-    );
+    // const setRewardPerDayTx = await deployments.execute('BqETHDiamond',
+    //   {from: deployer, log: true},
+    //   'setRewardPerDay',"2374430001"
+    // );
 
     // We have a dummy implementation contract (not facet)
     // and a DiamondEtherscan facet supporting ERC-1967 to 
     // allow Etherscan to expose out facet methods, but
     // the DiamondEtherscanFacet needs to point to the dummy contract 
 
-    const setImplementationTx = await deployments.execute('BqETHDiamond',
-      {from: deployer, log: true},
-      'setDummyImplementation',dummyImplementation.address
-    );
+    // const setImplementationTx = await deployments.execute('BqETHDiamond',
+    //   {from: deployer, log: true},
+    //   'setDummyImplementation',dummyImplementation.address
+    // );
     console.log("Deployment Finished.")
   };
   
